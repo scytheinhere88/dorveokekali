@@ -1,0 +1,18 @@
+# Increase upload size to 128MB
+php_value upload_max_filesize 128M
+php_value post_max_size 128M
+php_value max_execution_time 300
+php_value max_input_time 300
+
+# Enable mod_rewrite
+RewriteEngine On
+RewriteBase /
+
+# Redirect to HTTPS (if needed)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Remove index.php from URLs
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?/$1 [L]

@@ -1,0 +1,285 @@
+/**
+ * ADMIN PANEL RESPONSIVE - DORVE.ID
+ * Mobile, Tablet, Desktop optimization
+ */
+
+/* ========== BASE RESPONSIVE ========== */
+@media (max-width: 968px) {
+    /* Sidebar Mobile */
+    .admin-sidebar {
+        position: fixed;
+        left: -280px;
+        top: 0;
+        height: 100vh;
+        width: 280px;
+        background: white;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        transition: left 0.3s ease;
+        z-index: 1000;
+        overflow-y: auto;
+    }
+    
+    .admin-sidebar.active {
+        left: 0;
+    }
+    
+    .admin-sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+    }
+    
+    .admin-sidebar.active + .admin-sidebar-overlay {
+        display: block;
+    }
+    
+    /* Main content full width on mobile */
+    .admin-content {
+        margin-left: 0 !important;
+        padding: 20px !important;
+    }
+    
+    /* Mobile toggle button */
+    .admin-mobile-toggle {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1001;
+        background: #3B82F6;
+        color: white;
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 24px;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .admin-mobile-toggle:hover {
+        background: #2563EB;
+    }
+    
+    /* Tables responsive */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    table {
+        min-width: 600px;
+        font-size: 13px;
+    }
+    
+    th, td {
+        padding: 8px !important;
+        white-space: nowrap;
+    }
+    
+    /* Forms */
+    .form-row {
+        flex-direction: column !important;
+        gap: 20px !important;
+    }
+    
+    .form-group {
+        width: 100% !important;
+    }
+    
+    /* Buttons */
+    .btn-group {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+    
+    .btn {
+        width: 100% !important;
+    }
+    
+    /* Stats grid */
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+    
+    /* Cards */
+    .card {
+        padding: 20px !important;
+    }
+    
+    /* Modal */
+    .modal-content {
+        width: 95% !important;
+        padding: 24px !important;
+    }
+    
+    /* Header */
+    .admin-header {
+        flex-direction: column !important;
+        gap: 16px !important;
+        text-align: center;
+    }
+    
+    /* Actions */
+    .action-buttons {
+        flex-direction: column !important;
+        width: 100%;
+    }
+    
+    .action-buttons button,
+    .action-buttons a {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (min-width: 969px) and (max-width: 1200px) {
+    /* Tablet adjustments */
+    .admin-sidebar {
+        width: 240px;
+    }
+    
+    .admin-content {
+        margin-left: 240px !important;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    table {
+        font-size: 14px;
+    }
+}
+
+/* ========== TOUCH OPTIMIZATIONS ========== */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    button,
+    .btn,
+    a.btn,
+    .nav-link {
+        min-height: 48px;
+        padding: 12px 20px;
+    }
+    
+    /* Easier to tap checkboxes */
+    input[type="checkbox"],
+    input[type="radio"] {
+        width: 24px;
+        height: 24px;
+    }
+    
+    /* Dropdown */
+    select {
+        padding: 14px !important;
+        font-size: 16px !important;
+    }
+}
+
+/* ========== PRINT STYLES ========== */
+@media print {
+    .admin-sidebar,
+    .admin-mobile-toggle,
+    .btn,
+    .no-print {
+        display: none !important;
+    }
+    
+    .admin-content {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+}
+
+/* ========== LANDSCAPE MOBILE ========== */
+@media (max-width: 968px) and (orientation: landscape) {
+    .admin-sidebar {
+        width: 240px;
+        left: -240px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* ========== UTILITY CLASSES ========== */
+.mobile-only {
+    display: none;
+}
+
+.desktop-only {
+    display: block;
+}
+
+@media (max-width: 968px) {
+    .mobile-only {
+        display: block;
+    }
+    
+    .desktop-only {
+        display: none !important;
+    }
+    
+    .mobile-hidden {
+        display: none !important;
+    }
+}
+
+/* ========== IMAGE RESPONSIVE ========== */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.product-image-admin {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+}
+
+@media (max-width: 768px) {
+    .product-image-admin {
+        max-width: 100%;
+    }
+}
+
+/* ========== GRID RESPONSIVE ========== */
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+@media (max-width: 968px) {
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 969px) and (max-width: 1200px) {
+    .grid-3,
+    .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
