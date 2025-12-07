@@ -20,12 +20,14 @@ $stmt = $pdo->prepare("INSERT INTO print_batches (batch_code, printed_by_admin_i
 $stmt->execute([$batchCode, $_SESSION['user_id'], count($orderIds)]);
 $batchId = $pdo->lastInsertId();
 
-// Update shipments with batch ID
-$placeholders = implode(',', array_fill(0, count($orderIds), '?'));
-$stmt = $pdo->prepare("UPDATE biteship_shipments SET label_print_batch_id = ? WHERE order_id IN ($placeholders)");
-$stmt->execute(array_merge([$batchId], $orderIds));
+// Update shipments with batch ID - COMMENTED OUT (column doesn't exist)
+// Note: label_print_batch_id column doesn't exist in biteship_shipments table
+// Original code:
+// $stmt = $pdo->prepare("UPDATE biteship_shipments SET label_print_batch_id = ? WHERE order_id IN ($placeholders)");
+// $stmt->execute(array_merge([$batchId], $orderIds));
 
 // Update order status to waiting_pickup
+$placeholders = implode(',', array_fill(0, count($orderIds), '?'));
 $stmt = $pdo->prepare("UPDATE orders SET fulfillment_status = 'waiting_pickup' WHERE id IN ($placeholders)");
 $stmt->execute($orderIds);
 

@@ -59,8 +59,7 @@ try {
                 oa.province as customer_province,
                 bs.waybill_id,
                 bs.courier_company,
-                bs.courier_service_name,
-                bs.label_print_batch_id
+                bs.courier_service_name
             FROM orders o
             LEFT JOIN users u ON o.user_id = u.id
             LEFT JOIN order_addresses oa ON o.id = oa.order_id AND oa.type = 'shipping'
@@ -81,8 +80,7 @@ try {
                 oa.province as customer_province,
                 NULL as waybill_id,
                 NULL as courier_company,
-                NULL as courier_service_name,
-                NULL as label_print_batch_id
+                NULL as courier_service_name
             FROM orders o
             LEFT JOIN users u ON o.user_id = u.id
             LEFT JOIN order_addresses oa ON o.id = oa.order_id AND oa.type = 'shipping'

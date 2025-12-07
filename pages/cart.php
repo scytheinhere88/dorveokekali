@@ -8,7 +8,7 @@ try {
 
     if (isLoggedIn()) {
         $stmt = $pdo->prepare("SELECT ci.*, p.name, p.slug, p.price, p.discount_percent,
-                               pi.image_path, pv.color, pv.size, pv.extra_price
+                               pi.image_path, pv.color, pv.size
                                FROM cart_items ci
                                JOIN products p ON ci.product_id = p.id
                                LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
@@ -18,7 +18,7 @@ try {
     } else {
         $session_id = session_id();
         $stmt = $pdo->prepare("SELECT ci.*, p.name, p.slug, p.price, p.discount_percent,
-                               pi.image_path, pv.color, pv.size, pv.extra_price
+                               pi.image_path, pv.color, pv.size
                                FROM cart_items ci
                                JOIN products p ON ci.product_id = p.id
                                LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
@@ -31,7 +31,8 @@ try {
 
     $subtotal = 0;
     foreach ($cart_items as $item) {
-        $item_price = calculateDiscount($item['price'], $item['discount_percent']) + ($item['extra_price'] ?? 0);
+        // Calculate price using discount only (extra_price column doesn't exist)
+        $item_price = calculateDiscount($item['price'], $item['discount_percent']);
         $subtotal += $item_price * $item['qty'];
     }
 } catch (PDOException $e) {
