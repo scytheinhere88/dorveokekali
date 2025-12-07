@@ -249,6 +249,18 @@ include __DIR__ . '/../includes/admin-header.php';
         <p>Manage referral program, commissions, and customer tiers</p>
     </div>
 
+    <?php if (isset($_SESSION['success'])): ?>
+        <div style="padding: 16px 20px; border-radius: 8px; margin-bottom: 24px; background: #D1FAE5; border: 1px solid #6EE7B7; color: #065F46; font-weight: 500;">
+            ✅ <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['error'])): ?>
+        <div style="padding: 16px 20px; border-radius: 8px; margin-bottom: 24px; background: #FEE2E2; border: 1px solid #FCA5A5; color: #991B1B; font-weight: 500;">
+            ❌ <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+        </div>
+    <?php endif; ?>
+
     <!-- Statistics -->
     <div class="stats-grid">
         <div class="stat-card">

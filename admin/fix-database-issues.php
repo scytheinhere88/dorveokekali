@@ -141,19 +141,7 @@ try {
         echo "<p class='success'>✓ Created wallet_transactions table with payment_status column</p>";
         $fixCount++;
     } else {
-        // Check if payment_status column exists
-        $stmt = $pdo->query("SHOW COLUMNS FROM wallet_transactions LIKE 'payment_status'");
-
-        if ($stmt->rowCount() == 0) {
-            // Add payment_status column
-            $pdo->exec("ALTER TABLE wallet_transactions ADD COLUMN payment_status ENUM('pending', 'completed', 'failed', 'cancelled') DEFAULT 'pending' AFTER payment_method");
-            echo "<p class='success'>✓ Added payment_status column to wallet_transactions</p>";
-            $fixCount++;
-        } else {
-            echo "<p class='success'>✓ wallet_transactions table already has payment_status column</p>";
-        }
-
-        // Check if other required columns exist
+        // Check if required columns exist and add them in correct order
         $stmt = $pdo->query("DESCRIBE wallet_transactions");
         $columns = array_column($stmt->fetchAll(), 'Field');
 
@@ -161,23 +149,34 @@ try {
         if (!in_array('amount_original', $columns)) $missingColumns[] = 'amount_original';
         if (!in_array('unique_code', $columns)) $missingColumns[] = 'unique_code';
         if (!in_array('payment_method', $columns)) $missingColumns[] = 'payment_method';
+        if (!in_array('payment_status', $columns)) $missingColumns[] = 'payment_status';
         if (!in_array('bank_account_id', $columns)) $missingColumns[] = 'bank_account_id';
 
         if (!empty($missingColumns)) {
+            // Add columns in correct order
             if (in_array('amount_original', $missingColumns)) {
                 $pdo->exec("ALTER TABLE wallet_transactions ADD COLUMN amount_original DECIMAL(15,2) NULL COMMENT 'Original amount before unique code' AFTER amount");
+                echo "<p class='success'>✓ Added amount_original column</p>";
             }
             if (in_array('unique_code', $missingColumns)) {
                 $pdo->exec("ALTER TABLE wallet_transactions ADD COLUMN unique_code INT NULL COMMENT 'Unique 3-digit code for bank transfer' AFTER amount_original");
+                echo "<p class='success'>✓ Added unique_code column</p>";
             }
             if (in_array('payment_method', $missingColumns)) {
                 $pdo->exec("ALTER TABLE wallet_transactions ADD COLUMN payment_method VARCHAR(50) NULL COMMENT 'bank_transfer, wallet, etc.' AFTER balance_after");
+                echo "<p class='success'>✓ Added payment_method column</p>";
+            }
+            if (in_array('payment_status', $missingColumns)) {
+                $pdo->exec("ALTER TABLE wallet_transactions ADD COLUMN payment_status ENUM('pending', 'completed', 'failed', 'cancelled') DEFAULT 'pending' AFTER payment_method");
+                echo "<p class='success'>✓ Added payment_status column</p>";
             }
             if (in_array('bank_account_id', $missingColumns)) {
                 $pdo->exec("ALTER TABLE wallet_transactions ADD COLUMN bank_account_id INT NULL COMMENT 'Reference to bank_accounts table' AFTER payment_status");
+                echo "<p class='success'>✓ Added bank_account_id column</p>";
             }
-            echo "<p class='success'>✓ Added missing columns: " . implode(', ', $missingColumns) . "</p>";
             $fixCount++;
+        } else {
+            echo "<p class='success'>✓ wallet_transactions table has all required columns</p>";
         }
     }
 } catch (Exception $e) {
