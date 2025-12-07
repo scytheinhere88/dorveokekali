@@ -745,10 +745,7 @@ include __DIR__ . '/../includes/header.php';
 
                 // Update floating cart
                 if (typeof updateFloatingCart === 'function') {
-                    // Fetch cart totals
-                    const cartResponse = await fetch('/api/cart/get-totals.php');
-                    const cartData = await cartResponse.json();
-                    updateFloatingCart(data.cart_count, cartData.total || 0);
+                    updateFloatingCart(data.cart_count, data.cart_total || 0);
                 }
 
                 // Reset button after 2 seconds

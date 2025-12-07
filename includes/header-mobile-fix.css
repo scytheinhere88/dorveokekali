@@ -1,0 +1,350 @@
+/**
+ * HEADER MOBILE RESPONSIVE FIX
+ * Fixes cramped mobile header layout
+ * Makes cart and user menu easy to tap
+ */
+
+/* ============================================
+   MOBILE HEADER OPTIMIZATION (<= 768px)
+   ============================================ */
+
+@media (max-width: 768px) {
+    /* Simplify header top banner */
+    .header-top {
+        padding: 6px 0;
+        font-size: 10px;
+        line-height: 1.4;
+    }
+
+    /* Optimize main header container */
+    .header-container {
+        padding: 12px 16px;
+        gap: 12px;
+    }
+
+    /* Hide desktop navigation on mobile */
+    .main-nav {
+        display: none;
+    }
+
+    /* Make logo smaller on mobile */
+    .logo img {
+        height: 60px;
+    }
+
+    /* Optimize header actions */
+    .header-actions {
+        gap: 16px;
+    }
+
+    /* Make search toggle bigger and easier to tap */
+    .search-toggle,
+    .cart-icon,
+    .lang-switcher {
+        font-size: 16px;
+        min-width: 40px;
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Hide search toggle on mobile - reduce clutter */
+    .search-toggle {
+        display: none;
+    }
+
+    /* Hide language switcher on mobile */
+    .lang-switcher {
+        display: none;
+    }
+
+    /* Make cart icon bigger and touch-friendly */
+    .cart-icon {
+        font-size: 20px;
+        position: relative;
+    }
+
+    /* Cart badge optimization */
+    .cart-count {
+        top: -6px;
+        right: -6px;
+        width: 20px;
+        height: 20px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    /* User dropdown optimization */
+    .user-dropdown {
+        position: static;
+    }
+
+    .user-name {
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 13px;
+    }
+
+    /* User dropdown menu - full width on mobile */
+    .user-dropdown-menu {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        border-radius: 20px 20px 0 0;
+        max-height: 70vh;
+        overflow-y: auto;
+        box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Show mobile menu toggle */
+    .mobile-menu-toggle {
+        display: block;
+        font-size: 22px;
+        min-width: 40px;
+        min-height: 40px;
+        padding: 8px;
+        color: var(--charcoal);
+    }
+}
+
+/* ============================================
+   SMALL MOBILE (≤ 480px)
+   ============================================ */
+
+@media (max-width: 480px) {
+    .header-container {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .logo img {
+        height: 50px;
+    }
+
+    .header-actions {
+        gap: 12px;
+    }
+
+    .user-name {
+        max-width: 80px;
+        font-size: 12px;
+    }
+
+    .cart-icon {
+        font-size: 18px;
+    }
+
+    .cart-count {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+}
+
+/* ============================================
+   HEADER LAYOUT OPTIMIZATION
+   ============================================ */
+
+@media (max-width: 768px) {
+    /* Simplified mobile header layout */
+    .header-container {
+        display: grid;
+        grid-template-columns: 40px 1fr auto;
+        align-items: center;
+    }
+
+    /* Mobile menu toggle on left */
+    .mobile-menu-toggle {
+        grid-column: 1;
+    }
+
+    /* Logo in center */
+    .logo {
+        grid-column: 2;
+        justify-self: center;
+    }
+
+    /* Actions on right (cart + user) */
+    .header-actions {
+        grid-column: 3;
+        justify-self: end;
+    }
+}
+
+/* ============================================
+   MOBILE MENU BACKDROP
+   ============================================ */
+
+@media (max-width: 768px) {
+    .mobile-menu-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 999;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .mobile-menu-backdrop.active {
+        display: block;
+        opacity: 1;
+    }
+
+    /* Mobile navigation drawer */
+    .main-nav.mobile-active {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        height: 100vh;
+        background: white;
+        padding: 80px 24px 24px;
+        z-index: 1000;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+        transform: translateX(-100%);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        gap: 0;
+    }
+
+    .main-nav.mobile-active.active {
+        transform: translateX(0);
+    }
+
+    .main-nav.mobile-active a {
+        width: 100%;
+        padding: 16px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        font-size: 15px;
+        text-align: left;
+    }
+}
+
+/* ============================================
+   USER MENU MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .user-dropdown {
+        position: relative;
+    }
+
+    .user-dropdown-trigger {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        background: rgba(0, 0, 0, 0.04);
+        border-radius: 20px;
+        min-height: 40px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .user-dropdown-trigger:active {
+        background: rgba(0, 0, 0, 0.08);
+    }
+
+    .user-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .dropdown-arrow {
+        font-size: 10px;
+        transition: transform 0.3s ease;
+    }
+
+    .user-dropdown.active .dropdown-arrow {
+        transform: rotate(180deg);
+    }
+}
+
+/* ============================================
+   CART BUTTON MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .cart-icon {
+        padding: 8px;
+        background: rgba(0, 0, 0, 0.04);
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+    .cart-icon:active {
+        background: rgba(0, 0, 0, 0.08);
+        transform: scale(0.95);
+    }
+}
+
+/* ============================================
+   SEARCH BAR MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .search-bar {
+        padding: 20px 16px;
+    }
+
+    .search-bar input {
+        padding: 14px 50px 14px 16px;
+        font-size: 15px;
+    }
+
+    .search-bar button {
+        right: 16px;
+        font-size: 18px;
+    }
+}
+
+/* ============================================
+   TOUCH OPTIMIZATION
+   ============================================ */
+
+@media (hover: none) and (pointer: coarse) {
+    /* Touch devices - bigger tap targets */
+    .header-actions button,
+    .header-actions a,
+    .mobile-menu-toggle {
+        min-width: 44px;
+        min-height: 44px;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* ============================================
+   iOS SAFE AREA
+   ============================================ */
+
+@supports (padding: max(0px)) {
+    @media (max-width: 768px) {
+        .header-container {
+            padding-left: max(16px, env(safe-area-inset-left));
+            padding-right: max(16px, env(safe-area-inset-right));
+        }
+
+        .main-nav.mobile-active {
+            padding-left: max(24px, env(safe-area-inset-left));
+            padding-bottom: max(24px, env(safe-area-inset-bottom));
+        }
+    }
+}

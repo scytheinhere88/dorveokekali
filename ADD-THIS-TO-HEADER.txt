@@ -1,0 +1,18 @@
+MANUAL STEP REQUIRED:
+
+Add this line to /includes/header.php after line 81:
+
+    <!-- Header Mobile Fix CSS -->
+    <link rel="stylesheet" href="/includes/header-mobile-fix.css">
+
+The line should be added right after:
+    <link rel="stylesheet" href="/includes/global-responsive.css">
+
+So it looks like:
+    <!-- Global Responsive CSS -->
+    <link rel="stylesheet" href="/includes/global-responsive.css">
+
+    <!-- Header Mobile Fix CSS -->
+    <link rel="stylesheet" href="/includes/header-mobile-fix.css">
+
+Then test on mobile!
