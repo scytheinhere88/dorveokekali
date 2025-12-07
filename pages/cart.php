@@ -80,6 +80,7 @@ include __DIR__ . '/../includes/header.php';
         gap: 24px;
         padding: 30px 0;
         border-bottom: 1px solid rgba(0,0,0,0.08);
+        align-items: start;
     }
 
     .cart-item-image {
@@ -215,16 +216,152 @@ include __DIR__ . '/../includes/header.php';
     }
 
     @media (max-width: 968px) {
+        .cart-container {
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .cart-title {
+            font-size: 32px;
+            margin-bottom: 40px;
+        }
+
         .cart-layout {
             grid-template-columns: 1fr;
+            gap: 30px;
         }
 
         .cart-item {
-            grid-template-columns: 80px 1fr;
+            grid-template-columns: 100px 1fr;
+            gap: 16px;
+            padding: 20px 0;
+        }
+
+        .cart-item-image {
+            width: 100px;
+        }
+
+        .cart-item-info h3 {
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .cart-item-variant {
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .cart-item-qty {
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            font-size: 12px;
+        }
+
+        .qty-input {
+            width: 40px;
+            height: 28px;
+            font-size: 13px;
+        }
+
+        .remove-btn {
+            margin-left: 0;
+            font-size: 12px;
         }
 
         .cart-item-price {
             grid-column: 2;
+            text-align: left;
+            margin-top: 12px;
+        }
+
+        .price {
+            font-size: 16px;
+            margin-bottom: 0;
+        }
+
+        .cart-summary {
+            position: relative;
+            top: 0;
+            padding: 30px 20px;
+        }
+
+        .summary-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .summary-row {
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .summary-total {
+            font-size: 18px;
+            margin-top: 20px;
+            padding-top: 20px;
+        }
+
+        .checkout-btn {
+            padding: 16px;
+            font-size: 13px;
+            margin-top: 24px;
+        }
+
+        .empty-cart {
+            padding: 60px 20px;
+        }
+
+        .empty-cart h2 {
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .empty-cart p {
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .cart-container {
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        .cart-title {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        .cart-item {
+            grid-template-columns: 80px 1fr;
+            gap: 12px;
+            padding: 16px 0;
+        }
+
+        .cart-item-image {
+            width: 80px;
+        }
+
+        .cart-item-info h3 {
+            font-size: 14px;
+        }
+
+        .cart-item-info > div[style*="font-size: 16px"] {
+            font-size: 14px !important;
+        }
+
+        .cart-summary {
+            padding: 20px 16px;
+        }
+
+        .summary-title {
+            font-size: 18px;
         }
     }
 </style>
@@ -243,7 +380,7 @@ include __DIR__ . '/../includes/header.php';
             <div class="cart-items">
                 <?php foreach ($cart_items as $item): ?>
                     <?php
-                    $item_price = calculateDiscount($item['price'], $item['discount_percent']) + ($item['extra_price'] ?? 0);
+                    $item_price = calculateDiscount($item['price'], $item['discount_percent']);
                     $item_total = $item_price * $item['qty'];
                     ?>
                     <div class="cart-item">
