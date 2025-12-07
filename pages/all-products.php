@@ -591,10 +591,15 @@ include __DIR__ . '/../includes/header.php';
                             </div>
                         <?php endif; ?>
 
-                        <div style="margin-top: 8px;">
+                        <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <?php if ($product['discount_percent'] > 0): ?>
-                                <span class="product-price discount"><?php echo formatPrice($product['price']); ?></span>
-                                <span class="product-price"><?php echo formatPrice(calculateDiscount($product['price'], $product['discount_percent'])); ?></span>
+                                <div style="display: flex; flex-direction: column; gap: 4px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span class="product-price"><?php echo formatPrice(calculateDiscount($product['price'], $product['discount_percent'])); ?></span>
+                                        <span style="background: #EF4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700;">-<?php echo $product['discount_percent']; ?>%</span>
+                                    </div>
+                                    <span class="product-price discount" style="font-size: 13px;"><?php echo formatPrice($product['price']); ?></span>
+                                </div>
                             <?php else: ?>
                                 <span class="product-price"><?php echo formatPrice($product['price']); ?></span>
                             <?php endif; ?>

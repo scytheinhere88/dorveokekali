@@ -176,6 +176,16 @@ body.cart-page .floating-cart-btn,
 body.checkout-page .floating-cart-btn {
     display: none !important;
 }
+
+/* Auto-hide on cart and checkout pages by URL */
+<?php
+$current_page = $_SERVER['REQUEST_URI'] ?? '';
+if (strpos($current_page, '/cart.php') !== false || strpos($current_page, '/checkout.php') !== false):
+?>
+.floating-cart-btn {
+    display: none !important;
+}
+<?php endif; ?>
 </style>
 
 <script>

@@ -71,3 +71,6 @@
         </div>
     </div>
 </footer>
+
+<!-- Floating Cart Button -->
+<?php include __DIR__ . '/floating-cart.php'; ?>

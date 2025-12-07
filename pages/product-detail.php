@@ -448,7 +448,7 @@ include __DIR__ . '/../includes/header.php';
             </p>
         <?php endif; ?>
 
-        <form action="/pages/add-to-cart.php" method="POST" id="addToCartForm">
+        <form id="addToCartForm" onsubmit="return handleAddToCart(event)">
             <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
             <input type="hidden" name="variant_id" id="variantIdInput">
 
@@ -706,15 +706,121 @@ include __DIR__ . '/../includes/header.php';
         }
     }
 
-    document.getElementById('addToCartForm').addEventListener('submit', function(e) {
+    async function handleAddToCart(event) {
+        event.preventDefault();
+
         <?php if (!empty($colors) || !empty($sizes)): ?>
         if (!document.getElementById('variantIdInput').value) {
-            e.preventDefault();
-            alert('Please select <?php echo !empty($colors) ? "a color" : ""; ?><?php echo !empty($colors) && !empty($sizes) ? " and " : ""; ?><?php echo !empty($sizes) ? "a size" : ""; ?>');
+            showToast('Please select <?php echo !empty($colors) ? "a color" : ""; ?><?php echo !empty($colors) && !empty($sizes) ? " and " : ""; ?><?php echo !empty($sizes) ? "a size" : ""; ?>', 'error');
+            return false;
         }
         <?php endif; ?>
-    });
+
+        const form = document.getElementById('addToCartForm');
+        const formData = new FormData(form);
+        const button = form.querySelector('button[type="submit"]');
+        const originalText = button.textContent;
+
+        // Show loading state
+        button.textContent = 'Adding...';
+        button.disabled = true;
+        button.style.opacity = '0.7';
+
+        try {
+            const response = await fetch('/pages/add-to-cart.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Show success state
+                button.textContent = '✓ Added to Cart!';
+                button.style.background = '#10B981';
+
+                // Update floating cart
+                if (typeof updateFloatingCart === 'function') {
+                    // Fetch cart totals
+                    const cartResponse = await fetch('/api/cart/get-totals.php');
+                    const cartData = await cartResponse.json();
+                    updateFloatingCart(data.cart_count, cartData.total || 0);
+                }
+
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '';
+                    button.disabled = false;
+                    button.style.opacity = '1';
+                }, 2000);
+
+                // Show success toast
+                showToast(data.message, 'success');
+            } else {
+                throw new Error(data.message || 'Failed to add to cart');
+            }
+        } catch (error) {
+            button.textContent = originalText;
+            button.disabled = false;
+            button.style.opacity = '1';
+            showToast(error.message || 'Failed to add to cart', 'error');
+        }
+
+        return false;
+    }
+
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#10B981' : '#EF4444'};
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            animation: slideInRight 0.3s ease-out;
+            max-width: 300px;
+        `;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = 'slideOutRight 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
     
+    // Add toast animation styles
+    const toastStyles = document.createElement('style');
+    toastStyles.textContent = `
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(toastStyles);
+
     // Size Guide Modal
     function openSizeGuide() {
         document.getElementById('sizeGuideModal').style.display = 'flex';
