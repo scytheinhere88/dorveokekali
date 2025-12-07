@@ -37,8 +37,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'update_product') {
         $name = $_POST['name'] ?? '';
-        $short_description = $_POST['short_description'] ?? '';
-        $long_description = $_POST['long_description'] ?? '';
         $price = $_POST['price'] ?? 0;
         $discount_percent = $_POST['discount_percent'] ?? 0;
         $category_id = $_POST['category_id'] ?? null;
@@ -53,12 +51,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $stmt = $pdo->prepare("
                     UPDATE products
-                    SET name = ?, slug = ?, short_description = ?, long_description = ?,
-                        price = ?, discount_percent = ?, category_id = ?, gender = ?,
-                        is_new = ?, is_best_seller = ?
+                    SET name = ?, slug = ?, price = ?, discount_percent = ?,
+                        category_id = ?, gender = ?, is_new = ?, is_best_seller = ?
                     WHERE id = ?
                 ");
-                $stmt->execute([$name, $slug, $short_description, $long_description, $price, $discount_percent, $category_id, $gender, $is_new, $is_best_seller, $id]);
+                $stmt->execute([$name, $slug, $price, $discount_percent, $category_id, $gender, $is_new, $is_best_seller, $id]);
 
                 $success = 'Produk berhasil diupdate!';
 
@@ -300,16 +297,6 @@ th {
                             <option value="men" <?php echo ($product['gender'] ?? '') === 'men' ? 'selected' : ''; ?>>Men (Pria)</option>
                             <option value="unisex" <?php echo ($product['gender'] ?? '') === 'unisex' ? 'selected' : ''; ?>>Unisex (Pria & Wanita)</option>
                         </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="short_description">Deskripsi Singkat</label>
-                        <textarea id="short_description" name="short_description"><?php echo htmlspecialchars($product['short_description']); ?></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="long_description">Deskripsi Lengkap</label>
-                        <textarea id="long_description" name="long_description" style="min-height: 200px;"><?php echo htmlspecialchars($product['long_description']); ?></textarea>
                     </div>
 
                     <div class="form-row">
