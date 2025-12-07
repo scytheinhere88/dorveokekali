@@ -37,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'update_product') {
         $name = $_POST['name'] ?? '';
+        $description = $_POST['description'] ?? '';
         $price = $_POST['price'] ?? 0;
         $discount_percent = $_POST['discount_percent'] ?? 0;
         $category_id = $_POST['category_id'] ?? null;
@@ -51,11 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $stmt = $pdo->prepare("
                     UPDATE products
-                    SET name = ?, slug = ?, price = ?, discount_percent = ?,
+                    SET name = ?, slug = ?, description = ?, price = ?, discount_percent = ?,
                         category_id = ?, gender = ?, is_new = ?, is_best_seller = ?
                     WHERE id = ?
                 ");
-                $stmt->execute([$name, $slug, $price, $discount_percent, $category_id, $gender, $is_new, $is_best_seller, $id]);
+                $stmt->execute([$name, $slug, $description, $price, $discount_percent, $category_id, $gender, $is_new, $is_best_seller, $id]);
 
                 $success = 'Produk berhasil diupdate!';
 
@@ -264,6 +265,12 @@ th {
                     <div class="form-group">
                         <label for="name">Nama Produk *</label>
                         <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($product['name']); ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Deskripsi Produk</label>
+                        <textarea id="description" name="description" rows="5" placeholder="Jelaskan detail produk, bahan, ukuran, dll..."><?php echo htmlspecialchars($product['description'] ?? ''); ?></textarea>
+                        <small>Deskripsi ini akan dilihat oleh customer di halaman detail produk</small>
                     </div>
 
                     <div class="form-row">

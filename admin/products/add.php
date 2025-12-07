@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $price = floatval($_POST['price'] ?? 0);
-    $discount_price = !empty($_POST['discount_price']) ? floatval($_POST['discount_price']) : null;
+    $discount_percent = !empty($_POST['discount_percent']) ? floatval($_POST['discount_percent']) : 0;
     $category_id = !empty($_POST['category_id']) ? intval($_POST['category_id']) : null;
     $gender = $_POST['gender'] ?? 'unisex';
     $is_new = isset($_POST['is_new']) ? 1 : 0;
@@ -46,10 +46,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Insert product
             $stmt = $pdo->prepare("
-                INSERT INTO products (name, slug, price, discount_price, category_id, gender, is_new, is_best_seller, is_active, stock)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+                INSERT INTO products (name, slug, description, price, discount_percent, category_id, gender, is_new, is_best_seller, is_active, stock)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
             ");
-            $stmt->execute([$name, $slug, $price, $discount_price, $category_id, $gender, $is_new, $is_best_seller, $is_active]);
+            $stmt->execute([$name, $slug, $description, $price, $discount_percent, $category_id, $gender, $is_new, $is_best_seller, $is_active]);
 
             $product_id = $pdo->lastInsertId();
 
@@ -263,11 +263,11 @@ include __DIR__ . '/../includes/admin-header.php';
             </div>
 
             <div class="form-group">
-                <label for="discount_price">Discount Price (Rp)</label>
-                <input type="number" id="discount_price" name="discount_price" min="0" step="1000"
-                       placeholder="200000 (optional)"
-                       value="<?php echo htmlspecialchars($_POST['discount_price'] ?? ''); ?>">
-                <small>Leave empty if no discount</small>
+                <label for="discount_percent">Discount (%)</label>
+                <input type="number" id="discount_percent" name="discount_percent" min="0" max="100" step="0.01"
+                       placeholder="10 (for 10% off)"
+                       value="<?php echo htmlspecialchars($_POST['discount_percent'] ?? ''); ?>">
+                <small>Enter discount percentage (0-100). Set to 0 for no discount</small>
             </div>
         </div>
     </div>
@@ -598,12 +598,11 @@ document.getElementById('productForm').addEventListener('submit', function(e) {
         }
     }
 
-    // Validate discount price
-    const price = parseFloat(document.getElementById('price').value);
-    const discountPrice = parseFloat(document.getElementById('discount_price').value);
+    // Validate discount percent
+    const discountPercent = parseFloat(document.getElementById('discount_percent').value);
 
-    if (discountPrice && discountPrice >= price) {
-        alert('Discount price must be less than regular price!');
+    if (discountPercent && (discountPercent < 0 || discountPercent > 100)) {
+        alert('Discount percentage must be between 0 and 100!');
         e.preventDefault();
         return false;
     }
