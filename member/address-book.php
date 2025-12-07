@@ -11,11 +11,11 @@ $user = getCurrentUser();
 // Handle actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
-    
+
     try {
         if ($action === 'add') {
             $stmt = $pdo->prepare("
-                INSERT INTO user_addresses (user_id, label, recipient_name, phone, address, 
+                INSERT INTO user_addresses (user_id, label, recipient_name, phone, address,
                                            latitude, longitude, is_default)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ");
@@ -29,11 +29,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_POST['longitude'] ?? null,
                 isset($_POST['is_default']) ? 1 : 0
             ]);
-            
+
             if (isset($_POST['is_default'])) {
-                $pdo->exec("UPDATE user_addresses SET is_default = 0 WHERE user_id = $userId AND id != LAST_INSERT_ID()");
+                $newId = $pdo->lastInsertId();
+                $pdo->exec("UPDATE user_addresses SET is_default = 0 WHERE user_id = $userId AND id != $newId");
             }
-            
+
             $_SESSION['success'] = 'Address added successfully!';
             header('Location: /member/address-book.php');
             exit;
@@ -66,112 +67,198 @@ include __DIR__ . '/../includes/header.php';
 ?>
 
 <style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+        --success-gradient: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        --danger-color: #EF4444;
+        --text-primary: #1F2937;
+        --text-secondary: #6B7280;
+        --border-color: #E5E7EB;
+        --bg-light: #F9FAFB;
+    }
+
+    .member-content {
+        flex: 1;
+        min-width: 0;
+    }
+
     .member-content h1 {
         font-family: 'Playfair Display', serif;
-        font-size: 36px;
-        margin-bottom: 8px;
+        font-size: 42px;
+        margin-bottom: 12px;
+        background: linear-gradient(135deg, #1A1A1A 0%, #667EEA 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 700;
     }
-    
+
     .page-description {
-        color: #6B7280;
-        margin-bottom: 32px;
+        color: var(--text-secondary);
+        margin-bottom: 36px;
+        font-size: 16px;
     }
-    
+
+    .alert {
+        padding: 16px 20px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .alert-success {
+        background: #D1FAE5;
+        color: #065F46;
+        border: 1px solid #10B981;
+    }
+
+    .alert-error {
+        background: #FEE2E2;
+        color: #991B1B;
+        border: 1px solid #EF4444;
+    }
+
     .btn-add {
-        padding: 14px 28px;
-        background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+        padding: 16px 32px;
+        background: var(--primary-gradient);
         color: white;
         border: none;
-        border-radius: 10px;
+        border-radius: 12px;
         font-weight: 600;
         cursor: pointer;
-        margin-bottom: 24px;
-        font-size: 14px;
-        transition: transform 0.3s;
+        margin-bottom: 32px;
+        font-size: 15px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
     }
-    
+
     .btn-add:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
     }
-    
+
+    .btn-add:active {
+        transform: translateY(0);
+    }
+
     .address-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 24px;
     }
-    
+
     .address-card {
         background: white;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        border: 2px solid #E5E7EB;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        border: 2px solid var(--border-color);
         position: relative;
-        transition: all 0.3s;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    
+
     .address-card:hover {
         border-color: #667EEA;
-        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
+        box-shadow: 0 8px 28px rgba(102, 126, 234, 0.15);
+        transform: translateY(-4px);
     }
-    
+
     .address-card.default {
         border-color: #10B981;
-        background: linear-gradient(to bottom, #ECFDF5 0%, white 30%);
+        background: linear-gradient(to bottom, #ECFDF5 0%, white 40%);
     }
-    
+
     .default-badge {
         position: absolute;
-        top: 16px;
-        right: 16px;
-        background: #10B981;
+        top: 20px;
+        right: 20px;
+        background: var(--success-gradient);
         color: white;
-        padding: 6px 12px;
-        border-radius: 6px;
+        padding: 8px 14px;
+        border-radius: 8px;
         font-size: 12px;
         font-weight: 700;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
     }
-    
+
     .address-label {
-        font-size: 20px;
+        font-size: 22px;
         font-weight: 700;
-        margin-bottom: 12px;
+        margin-bottom: 16px;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
-    
+
     .address-details {
         font-size: 14px;
         color: #374151;
-        line-height: 1.8;
+        line-height: 1.9;
     }
-    
+
     .address-details > div {
-        margin-bottom: 8px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
     }
-    
+
+    .address-details strong {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
     .address-actions {
         display: flex;
-        gap: 8px;
-        margin-top: 16px;
-        padding-top: 16px;
-        border-top: 1px solid #E5E7EB;
+        gap: 10px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color);
     }
-    
+
     .btn {
-        padding: 8px 16px;
-        border-radius: 8px;
+        padding: 10px 18px;
+        border-radius: 10px;
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
         border: none;
         transition: all 0.3s;
     }
-    
-    .btn-default { background: #10B981; color: white; }
-    .btn-default:hover { background: #059669; }
-    .btn-delete { background: #EF4444; color: white; }
-    .btn-delete:hover { background: #DC2626; }
-    
+
+    .btn-default {
+        background: var(--success-gradient);
+        color: white;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+    }
+    .btn-default:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    .btn-delete {
+        background: var(--danger-color);
+        color: white;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+    }
+    .btn-delete:hover {
+        background: #DC2626;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
     .modal {
         display: none;
         position: fixed;
@@ -183,124 +270,234 @@ include __DIR__ . '/../includes/header.php';
         background: rgba(0,0,0,0.7);
         backdrop-filter: blur(8px);
         overflow-y: auto;
+        animation: fadeIn 0.3s;
     }
-    
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
     .modal-content {
         background: white;
-        border-radius: 20px;
-        max-width: 900px;
-        width: 90%;
+        border-radius: 24px;
+        max-width: 950px;
+        width: 92%;
         margin: 40px auto;
-        padding: 32px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     }
-    
+
+    @keyframes slideUp {
+        from { transform: translateY(50px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
     .modal h2 {
-        font-size: 28px;
+        font-size: 32px;
         font-weight: 700;
-        margin-bottom: 24px;
-    }
-    
-    .form-group {
-        margin-bottom: 20px;
-    }
-    
-    .form-group label {
-        display: block;
         margin-bottom: 8px;
-        font-weight: 600;
-        color: #374151;
+        font-family: 'Playfair Display', serif;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
-    
-    .form-group input, .form-group textarea {
-        width: 100%;
-        padding: 12px 16px;
-        border: 2px solid #E5E7EB;
-        border-radius: 10px;
+
+    .modal-subtitle {
+        color: var(--text-secondary);
+        margin-bottom: 32px;
         font-size: 15px;
     }
-    
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 600;
+        color: #374151;
+        font-size: 14px;
+    }
+
+    .form-group input, .form-group textarea {
+        width: 100%;
+        padding: 14px 18px;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        font-size: 15px;
+        transition: all 0.3s;
+        background: var(--bg-light);
+    }
+
     .form-group input:focus, .form-group textarea:focus {
         outline: none;
         border-color: #667EEA;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
     }
-    
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
     textarea {
-        min-height: 100px;
+        min-height: 110px;
         resize: vertical;
+        font-family: inherit;
     }
-    
+
     #map {
         width: 100%;
-        height: 400px;
-        border-radius: 12px;
-        border: 2px solid #E5E7EB;
-        margin: 16px 0;
+        height: 450px;
+        border-radius: 16px;
+        border: 2px solid var(--border-color);
+        margin: 20px 0;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
     }
-    
+
     .map-hint {
-        font-size: 13px;
-        color: #6B7280;
-        padding: 12px;
-        background: #F9FAFB;
-        border-radius: 8px;
-        margin-bottom: 16px;
+        font-size: 14px;
+        color: var(--text-secondary);
+        padding: 16px 20px;
+        background: #FEF3C7;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border-left: 4px solid #F59E0B;
+        line-height: 1.6;
     }
-    
+
     .btn-submit {
         width: 100%;
-        padding: 16px;
-        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        padding: 18px;
+        background: var(--success-gradient);
         color: white;
         border: none;
-        border-radius: 10px;
+        border-radius: 12px;
         font-size: 16px;
         font-weight: 700;
         cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
     }
-    
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 24px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-cancel {
+        background: #6B7280;
+        box-shadow: 0 4px 16px rgba(107, 114, 128, 0.3);
+    }
+
+    .btn-cancel:hover {
+        background: #4B5563;
+    }
+
     .empty-state {
         grid-column: 1/-1;
         text-align: center;
-        padding: 60px;
+        padding: 80px 40px;
+        background: var(--bg-light);
+        border-radius: 20px;
+        border: 2px dashed var(--border-color);
     }
-    
+
     .empty-state-icon {
-        font-size: 64px;
-        margin-bottom: 16px;
+        font-size: 80px;
+        margin-bottom: 20px;
+        opacity: 0.5;
     }
-    
-    @media (max-width: 768px) {
+
+    .empty-state h3 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: var(--text-primary);
+    }
+
+    .empty-state p {
+        color: var(--text-secondary);
+    }
+
+    @media (max-width: 968px) {
+        .member-content h1 {
+            font-size: 32px;
+        }
+
         .address-grid {
             grid-template-columns: 1fr;
         }
-        
+
         .modal-content {
-            padding: 24px;
+            padding: 28px 24px;
+            width: 95%;
+        }
+
+        .modal h2 {
+            font-size: 26px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        #map {
+            height: 350px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .member-content h1 {
+            font-size: 26px;
+        }
+
+        .btn-add {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .address-card {
+            padding: 20px;
+        }
+
+        .address-actions {
+            flex-direction: column;
+        }
+
+        .address-actions .btn {
+            width: 100%;
         }
     }
 </style>
 
 <div class="member-layout">
     <?php include __DIR__ . '/../includes/member-sidebar.php'; ?>
-    
+
     <div class="member-content">
         <h1>📍 Address Book</h1>
-        <p class="page-description">Manage your shipping addresses</p>
+        <p class="page-description">Manage your shipping addresses for fast checkout</p>
 
         <?php if (isset($_SESSION['success'])): ?>
-            <div style="padding: 16px; background: #D1FAE5; color: #065F46; border-radius: 8px; margin-bottom: 24px;">
+            <div class="alert alert-success">
                 ✅ <?= htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
             </div>
         <?php endif; ?>
-        
+
         <?php if (isset($_SESSION['error'])): ?>
-            <div style="padding: 16px; background: #FEE2E2; color: #991B1B; border-radius: 8px; margin-bottom: 24px;">
+            <div class="alert alert-error">
                 ❌ <?= htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
             </div>
         <?php endif; ?>
 
         <button onclick="openModal()" class="btn-add">
-            ➕ Add New Address
+            <span style="font-size: 18px;">➕</span> Add New Address
         </button>
 
         <div class="address-grid">
@@ -308,30 +505,41 @@ include __DIR__ . '/../includes/header.php';
                 <div class="empty-state">
                     <div class="empty-state-icon">📍</div>
                     <h3>No Addresses Yet</h3>
-                    <p style="color: #6B7280; margin-top: 8px;">Add your first address to get started</p>
+                    <p style="margin-top: 8px;">Add your first shipping address to speed up checkout</p>
                 </div>
             <?php else: ?>
                 <?php foreach ($addresses as $addr): ?>
                 <div class="address-card <?= $addr['is_default'] ? 'default' : '' ?>">
                     <?php if ($addr['is_default']): ?>
-                        <div class="default-badge">✓ Default</div>
+                        <div class="default-badge">✓ DEFAULT</div>
                     <?php endif; ?>
-                    
+
                     <div class="address-label">
+                        <span style="font-size: 20px;">🏠</span>
                         <?= htmlspecialchars($addr['label']) ?>
                     </div>
-                    
+
                     <div class="address-details">
-                        <div><strong><?= htmlspecialchars($addr['recipient_name']) ?></strong></div>
-                        <div>📱 <?= htmlspecialchars($addr['phone']) ?></div>
-                        <div>📍 <?= nl2br(htmlspecialchars($addr['address'])) ?></div>
+                        <div>
+                            <span>👤</span>
+                            <strong><?= htmlspecialchars($addr['recipient_name']) ?></strong>
+                        </div>
+                        <div>
+                            <span>📱</span>
+                            <?= htmlspecialchars($addr['phone']) ?>
+                        </div>
+                        <div>
+                            <span>📍</span>
+                            <?= nl2br(htmlspecialchars($addr['address'])) ?>
+                        </div>
                         <?php if ($addr['latitude'] && $addr['longitude']): ?>
-                            <div style="font-size: 12px; color: #6B7280;">
-                                📌 Lat: <?= $addr['latitude'] ?>, Long: <?= $addr['longitude'] ?>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
+                                <span>📌</span>
+                                Lat: <?= $addr['latitude'] ?>, Long: <?= $addr['longitude'] ?>
                             </div>
                         <?php endif; ?>
                     </div>
-                    
+
                     <div class="address-actions">
                         <?php if (!$addr['is_default']): ?>
                         <form method="POST" style="flex: 1;">
@@ -342,7 +550,7 @@ include __DIR__ . '/../includes/header.php';
                             </button>
                         </form>
                         <?php endif; ?>
-                        
+
                         <form method="POST" onsubmit="return confirm('Delete this address?')">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="address_id" value="<?= $addr['id'] ?>">
@@ -362,57 +570,58 @@ include __DIR__ . '/../includes/header.php';
 <div class="modal" id="addressModal">
     <div class="modal-content">
         <h2>📍 Add New Address</h2>
-        
-        <form method="POST">
+        <p class="modal-subtitle">Pin your exact location for accurate delivery</p>
+
+        <form method="POST" id="addressForm">
             <input type="hidden" name="action" value="add">
             <input type="hidden" name="latitude" id="latitude">
             <input type="hidden" name="longitude" id="longitude">
-            
+
             <div class="form-group">
                 <label>Address Label *</label>
                 <input type="text" name="label" placeholder="e.g., Home, Office, Mom's House" required>
             </div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+
+            <div class="form-row">
                 <div class="form-group">
                     <label>Recipient Name *</label>
                     <input type="text" name="recipient_name" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label>Phone Number *</label>
-                    <input type="tel" name="phone" required>
+                    <input type="tel" name="phone" placeholder="08123456789" required>
                 </div>
             </div>
-            
+
             <div class="form-group">
                 <label>🔍 Search Location</label>
-                <input type="text" id="autocomplete" placeholder="Type address to search..." style="width: 100%; padding: 12px 16px; border: 2px solid #E5E7EB; border-radius: 10px; font-size: 15px;">
+                <input type="text" id="autocomplete" placeholder="Type address to search..." autocomplete="off">
             </div>
-            
+
             <div class="map-hint">
-                📍 <strong>Search or click on the map</strong> to select your exact location. Drag the marker to adjust.
+                📍 <strong>Search or click on the map</strong> to select your exact location. You can drag the marker to fine-tune the position.
             </div>
-            
+
             <div id="map"></div>
-            
+
             <div class="form-group">
                 <label>Full Address *</label>
-                <textarea name="address" id="addressField" placeholder="Complete address with street, area, postal code..." required></textarea>
+                <textarea name="address" id="addressField" placeholder="Street name, building number, area, postal code..." required></textarea>
             </div>
-            
+
             <div class="form-group">
-                <label style="display: flex; align-items: center; gap: 8px;">
-                    <input type="checkbox" name="is_default" style="width: auto;">
-                    Set as default address
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" name="is_default" style="width: auto; cursor: pointer;">
+                    <span>Set as default shipping address</span>
                 </label>
             </div>
-            
+
             <div style="display: flex; gap: 12px;">
-                <button type="submit" class="btn-submit" style="flex: 1;">
+                <button type="submit" class="btn-submit" style="flex: 2;">
                     ✓ Save Address
                 </button>
-                <button type="button" onclick="closeModal()" class="btn-submit" style="background: #6B7280;">
+                <button type="button" onclick="closeModal()" class="btn-submit btn-cancel" style="flex: 1;">
                     Cancel
                 </button>
             </div>
@@ -420,104 +629,149 @@ include __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
+<script src="https://js.api.here.com/v3/3.1/mapsjs-core.js"></script>
+<script src="https://js.api.here.com/v3/3.1/mapsjs-service.js"></script>
+<script src="https://js.api.here.com/v3/3.1/mapsjs-ui.js"></script>
+<script src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js"></script>
+
 <script>
-const GOOGLE_MAPS_API_KEY = 'AIzaSyDesxpkeo8st5QzR8M7IdcczB3EpOoT9xY';
+const HERE_API_KEY = 'gvL9FlCOjPwyh0aSaMG7fyP_wr8mMXs0UqERooLBXrs';
+
+let map, marker, platform, autocompleteTimeout;
 
 function openModal() {
     document.getElementById('addressModal').style.display = 'block';
-    if (!window.google || !window.google.maps) {
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&callback=initMap`;
-        script.onerror = () => {
-            document.getElementById('map').innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #FEE2E2; flex-direction: column; padding: 20px; text-align: center;"><div style="font-size: 48px; margin-bottom: 16px;">❌</div><div style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: #991B1B;">Google Maps Error</div></div>';
-        };
-        document.head.appendChild(script);
-    } else {
-        setTimeout(initMap, 100);
+    document.body.style.overflow = 'hidden';
+
+    if (!map) {
+        setTimeout(initHereMap, 100);
     }
 }
 
 function closeModal() {
     document.getElementById('addressModal').style.display = 'none';
+    document.body.style.overflow = '';
+    document.getElementById('addressForm').reset();
 }
 
-let map, marker, geocoder, autocomplete;
-
-function initMap() {
+function initHereMap() {
     try {
+        platform = new H.service.Platform({
+            apikey: HERE_API_KEY
+        });
+
+        const defaultLayers = platform.createDefaultLayers();
         const defaultPos = { lat: -6.2088, lng: 106.8456 };
-        
-        map = new google.maps.Map(document.getElementById('map'), {
-            center: defaultPos,
-            zoom: 15,
-            mapTypeControl: true,
-            streetViewControl: false,
-            fullscreenControl: true
-        });
-        
-        geocoder = new google.maps.Geocoder();
-        
-        marker = new google.maps.Marker({
-            position: defaultPos,
-            map: map,
-            draggable: true,
-            animation: google.maps.Animation.DROP
-        });
-        
-        const input = document.getElementById('autocomplete');
-        autocomplete = new google.maps.places.Autocomplete(input, {
-            componentRestrictions: { country: 'id' },
-            fields: ['formatted_address', 'geometry', 'name']
-        });
-        
-        autocomplete.addListener('place_changed', () => {
-            const place = autocomplete.getPlace();
-            if (!place.geometry || !place.geometry.location) {
-                alert('Lokasi tidak ditemukan. Silakan coba lagi.');
-                return;
+
+        map = new H.Map(
+            document.getElementById('map'),
+            defaultLayers.vector.normal.map,
+            {
+                center: defaultPos,
+                zoom: 15,
+                pixelRatio: window.devicePixelRatio || 1
             }
-            map.setCenter(place.geometry.location);
-            map.setZoom(17);
-            marker.setPosition(place.geometry.location);
-            document.getElementById('latitude').value = place.geometry.location.lat();
-            document.getElementById('longitude').value = place.geometry.location.lng();
-            document.getElementById('addressField').value = place.formatted_address;
+        );
+
+        window.addEventListener('resize', () => map.getViewPort().resize());
+
+        const behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
+        const ui = H.ui.UI.createDefault(map, defaultLayers);
+
+        marker = new H.map.Marker(defaultPos, {
+            volatility: true
         });
-        
-        map.addListener('click', (e) => {
-            marker.setPosition(e.latLng);
-            map.panTo(e.latLng);
-            updateAddress(e.latLng);
+        marker.draggable = true;
+        map.addObject(marker);
+
+        marker.addEventListener('dragend', function(ev) {
+            const coord = map.screenToGeo(
+                ev.currentPointer.viewportX,
+                ev.currentPointer.viewportY
+            );
+            marker.setGeometry(coord);
+            updateAddress(coord.lat, coord.lng);
         });
-        
-        marker.addListener('dragend', () => {
-            updateAddress(marker.getPosition());
+
+        map.addEventListener('tap', function(evt) {
+            const coord = map.screenToGeo(
+                evt.currentPointer.viewportX,
+                evt.currentPointer.viewportY
+            );
+            marker.setGeometry(coord);
+            map.setCenter(coord);
+            updateAddress(coord.lat, coord.lng);
         });
-        
+
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((position) => {
                 const pos = {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude
                 };
+                marker.setGeometry(pos);
                 map.setCenter(pos);
-                marker.setPosition(pos);
-                updateAddress(pos);
+                updateAddress(pos.lat, pos.lng);
             });
         }
+
+        setupAutocomplete();
+
     } catch (error) {
-        console.error('Map initialization error:', error);
+        console.error('HERE Map initialization error:', error);
+        document.getElementById('map').innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #FEE2E2; flex-direction: column; padding: 20px; text-align: center;"><div style="font-size: 48px; margin-bottom: 16px;">❌</div><div style="font-size: 16px; font-weight: 600; color: #991B1B;">Map Error: ' + error.message + '</div></div>';
     }
 }
 
-function updateAddress(location) {
-    document.getElementById('latitude').value = location.lat();
-    document.getElementById('longitude').value = location.lng();
-    geocoder.geocode({ location: location }, (results, status) => {
-        if (status === 'OK' && results[0]) {
-            document.getElementById('addressField').value = results[0].formatted_address;
-        }
+function setupAutocomplete() {
+    const input = document.getElementById('autocomplete');
+
+    input.addEventListener('input', function() {
+        clearTimeout(autocompleteTimeout);
+        const query = this.value.trim();
+
+        if (query.length < 3) return;
+
+        autocompleteTimeout = setTimeout(() => {
+            fetch(`https://autocomplete.search.hereapi.com/v1/autocomplete?q=${encodeURIComponent(query)}&at=-6.2088,106.8456&limit=5&apiKey=${HERE_API_KEY}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.items && data.items.length > 0) {
+                        const firstResult = data.items[0];
+                        if (firstResult.position) {
+                            const pos = {
+                                lat: firstResult.position.lat,
+                                lng: firstResult.position.lng
+                            };
+                            marker.setGeometry(pos);
+                            map.setCenter(pos);
+                            map.setZoom(17);
+                            updateAddress(pos.lat, pos.lng);
+                        }
+                    }
+                })
+                .catch(err => console.error('Autocomplete error:', err));
+        }, 500);
     });
+}
+
+function updateAddress(lat, lng) {
+    document.getElementById('latitude').value = lat.toFixed(8);
+    document.getElementById('longitude').value = lng.toFixed(8);
+
+    fetch(`https://revgeocode.search.hereapi.com/v1/revgeocode?at=${lat},${lng}&apiKey=${HERE_API_KEY}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.items && data.items.length > 0) {
+                const address = data.items[0].address;
+                const fullAddress = address.label ||
+                    [address.street, address.district, address.city, address.postalCode, address.countryName]
+                        .filter(Boolean)
+                        .join(', ');
+                document.getElementById('addressField').value = fullAddress;
+            }
+        })
+        .catch(err => console.error('Reverse geocoding error:', err));
 }
 
 document.getElementById('addressModal').addEventListener('click', (e) => {
