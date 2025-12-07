@@ -1,33 +1,43 @@
 <?php
-require_once __DIR__ . '/../config.php';
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-if (isLoggedIn()) {
-    $stmt = $pdo->prepare("SELECT ci.*, p.name, p.slug, p.price, p.discount_percent,
-                           pi.image_path, pv.color, pv.size, pv.extra_price
-                           FROM cart_items ci
-                           JOIN products p ON ci.product_id = p.id
-                           LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
-                           LEFT JOIN product_variants pv ON ci.variant_id = pv.id
-                           WHERE ci.user_id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
-} else {
-    $session_id = session_id();
-    $stmt = $pdo->prepare("SELECT ci.*, p.name, p.slug, p.price, p.discount_percent,
-                           pi.image_path, pv.color, pv.size, pv.extra_price
-                           FROM cart_items ci
-                           JOIN products p ON ci.product_id = p.id
-                           LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
-                           LEFT JOIN product_variants pv ON ci.variant_id = pv.id
-                           WHERE ci.session_id = ?");
-    $stmt->execute([$session_id]);
-}
+try {
+    require_once __DIR__ . '/../config.php';
 
-$cart_items = $stmt->fetchAll();
+    if (isLoggedIn()) {
+        $stmt = $pdo->prepare("SELECT ci.*, p.name, p.slug, p.price, p.discount_percent,
+                               pi.image_path, pv.color, pv.size, pv.extra_price
+                               FROM cart_items ci
+                               JOIN products p ON ci.product_id = p.id
+                               LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
+                               LEFT JOIN product_variants pv ON ci.variant_id = pv.id
+                               WHERE ci.user_id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+    } else {
+        $session_id = session_id();
+        $stmt = $pdo->prepare("SELECT ci.*, p.name, p.slug, p.price, p.discount_percent,
+                               pi.image_path, pv.color, pv.size, pv.extra_price
+                               FROM cart_items ci
+                               JOIN products p ON ci.product_id = p.id
+                               LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
+                               LEFT JOIN product_variants pv ON ci.variant_id = pv.id
+                               WHERE ci.session_id = ?");
+        $stmt->execute([$session_id]);
+    }
 
-$subtotal = 0;
-foreach ($cart_items as $item) {
-    $item_price = calculateDiscount($item['price'], $item['discount_percent']) + ($item['extra_price'] ?? 0);
-    $subtotal += $item_price * $item['qty'];
+    $cart_items = $stmt->fetchAll();
+
+    $subtotal = 0;
+    foreach ($cart_items as $item) {
+        $item_price = calculateDiscount($item['price'], $item['discount_percent']) + ($item['extra_price'] ?? 0);
+        $subtotal += $item_price * $item['qty'];
+    }
+} catch (PDOException $e) {
+    die("<h1>Database Error - Cart.php</h1><pre>" . htmlspecialchars($e->getMessage()) . "\n\nStack trace:\n" . htmlspecialchars($e->getTraceAsString()) . "</pre>");
+} catch (Exception $e) {
+    die("<h1>Error - Cart.php</h1><pre>" . htmlspecialchars($e->getMessage()) . "\n\nStack trace:\n" . htmlspecialchars($e->getTraceAsString()) . "</pre>");
 }
 
 $shipping = $subtotal >= 500000 ? 0 : 25000;

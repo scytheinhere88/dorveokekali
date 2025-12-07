@@ -508,7 +508,11 @@ include __DIR__ . '/../includes/header.php';
             </div>
 
             <div id="description" class="tab-content active">
-                <?php echo nl2br(htmlspecialchars($product['long_description'] ?? $product['short_description'])); ?>
+                <?php
+                // Display description with fallback to short_description if empty
+                $description = $product['description'] ?? $product['short_description'] ?? 'Tidak ada deskripsi tersedia.';
+                echo nl2br(htmlspecialchars($description));
+                ?>
             </div>
 
             <div id="reviews" class="tab-content">

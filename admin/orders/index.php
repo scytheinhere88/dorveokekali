@@ -1,8 +1,16 @@
 <?php
-require_once __DIR__ . '/../../config.php';
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-if (!isAdmin()) {
-    redirect('/admin/login.php');
+try {
+    require_once __DIR__ . '/../../config.php';
+
+    if (!isAdmin()) {
+        redirect('/admin/login.php');
+    }
+} catch (Exception $e) {
+    die("<h1>Config Error - Admin Orders</h1><pre>" . htmlspecialchars($e->getMessage()) . "\n\nStack trace:\n" . htmlspecialchars($e->getTraceAsString()) . "</pre>");
 }
 
 // Get filter parameters
@@ -34,43 +42,79 @@ if (!empty($search)) {
 
 $whereClause = implode(' AND ', $where);
 
-// Get orders with shipping address
-$stmt = $pdo->prepare("
-    SELECT 
-        o.*,
-        u.name as customer_name,
-        u.email as customer_email,
-        u.phone as customer_phone,
-        oa.city as customer_city,
-        oa.province as customer_province,
-        bs.waybill_id,
-        bs.courier_company,
-        bs.courier_service_name,
-        bs.label_print_batch_id
-    FROM orders o
-    LEFT JOIN users u ON o.user_id = u.id
-    LEFT JOIN order_addresses oa ON o.id = oa.order_id AND oa.type = 'shipping'
-    LEFT JOIN biteship_shipments bs ON o.id = bs.order_id
-    WHERE $whereClause
-    ORDER BY o.created_at DESC
-    LIMIT ? OFFSET ?
-");
-$params[] = $limit;
-$params[] = $offset;
-$stmt->execute($params);
-$orders = $stmt->fetchAll();
+// Get orders with shipping address - WITH ERROR HANDLING
+try {
+    // Check if biteship_shipments table exists
+    $tableCheck = $pdo->query("SHOW TABLES LIKE 'biteship_shipments'");
+    $biteshipTableExists = $tableCheck->rowCount() > 0;
 
-// Get total count
-$countStmt = $pdo->prepare("
-    SELECT COUNT(DISTINCT o.id) as total
-    FROM orders o
-    LEFT JOIN users u ON o.user_id = u.id
-    LEFT JOIN order_addresses oa ON o.id = oa.order_id AND oa.type = 'shipping'
-    WHERE $whereClause
-");
-$countStmt->execute(array_slice($params, 0, -2)); // Remove limit & offset
-$totalOrders = $countStmt->fetch()['total'];
-$totalPages = ceil($totalOrders / $limit);
+    if ($biteshipTableExists) {
+        $stmt = $pdo->prepare("
+            SELECT
+                o.*,
+                u.name as customer_name,
+                u.email as customer_email,
+                u.phone as customer_phone,
+                oa.city as customer_city,
+                oa.province as customer_province,
+                bs.waybill_id,
+                bs.courier_company,
+                bs.courier_service_name,
+                bs.label_print_batch_id
+            FROM orders o
+            LEFT JOIN users u ON o.user_id = u.id
+            LEFT JOIN order_addresses oa ON o.id = oa.order_id AND oa.type = 'shipping'
+            LEFT JOIN biteship_shipments bs ON o.id = bs.order_id
+            WHERE $whereClause
+            ORDER BY o.created_at DESC
+            LIMIT ? OFFSET ?
+        ");
+    } else {
+        // Fallback query without biteship_shipments
+        $stmt = $pdo->prepare("
+            SELECT
+                o.*,
+                u.name as customer_name,
+                u.email as customer_email,
+                u.phone as customer_phone,
+                oa.city as customer_city,
+                oa.province as customer_province,
+                NULL as waybill_id,
+                NULL as courier_company,
+                NULL as courier_service_name,
+                NULL as label_print_batch_id
+            FROM orders o
+            LEFT JOIN users u ON o.user_id = u.id
+            LEFT JOIN order_addresses oa ON o.id = oa.order_id AND oa.type = 'shipping'
+            WHERE $whereClause
+            ORDER BY o.created_at DESC
+            LIMIT ? OFFSET ?
+        ");
+    }
+
+    $params[] = $limit;
+    $params[] = $offset;
+    $stmt->execute($params);
+    $orders = $stmt->fetchAll();
+} catch (PDOException $e) {
+    die("<h1>Database Error - Admin Orders Query</h1><pre>" . htmlspecialchars($e->getMessage()) . "\n\nSQL Error: " . htmlspecialchars($e->getMessage()) . "\n\nStack trace:\n" . htmlspecialchars($e->getTraceAsString()) . "</pre>");
+}
+
+// Get total count - WITH ERROR HANDLING
+try {
+    $countStmt = $pdo->prepare("
+        SELECT COUNT(DISTINCT o.id) as total
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.id
+        LEFT JOIN order_addresses oa ON o.id = oa.order_id AND oa.type = 'shipping'
+        WHERE $whereClause
+    ");
+    $countStmt->execute(array_slice($params, 0, -2)); // Remove limit & offset
+    $totalOrders = $countStmt->fetch()['total'];
+    $totalPages = ceil($totalOrders / $limit);
+} catch (PDOException $e) {
+    die("<h1>Database Error - Count Query</h1><pre>" . htmlspecialchars($e->getMessage()) . "</pre>");
+}
 
 // Get status counts
 $statusCounts = [];
