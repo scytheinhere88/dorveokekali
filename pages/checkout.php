@@ -39,6 +39,9 @@ $page_keywords = 'checkout, pembayaran online, transfer bank, cod, e-wallet, bay
 include __DIR__ . '/../includes/header.php';
 ?>
 
+<!-- Checkout Luxury Style -->
+<link rel="stylesheet" href="/includes/checkout-luxury-style.css">
+
 <style>
     * { box-sizing: border-box; }
     .checkout-container {
@@ -401,15 +404,15 @@ include __DIR__ . '/../includes/header.php';
                 <div class="address-selector">
                     <div class="form-group">
                         <label>Select Saved Address *</label>
-                        <select id="savedAddressSelect" class="form-control">
+                        <select id="savedAddressSelect" name="saved_address_id" class="form-control">
                             <option value="">-- Select an address or fill manually --</option>
                             <?php foreach ($savedAddresses as $addr): ?>
                                 <option value="<?= $addr['id'] ?>"
-                                        data-name="<?= htmlspecialchars($addr['recipient_name']) ?>"
+                                        data-recipient-name="<?= htmlspecialchars($addr['recipient_name']) ?>"
                                         data-phone="<?= htmlspecialchars($addr['phone']) ?>"
                                         data-address="<?= htmlspecialchars($addr['address']) ?>"
-                                        data-lat="<?= $addr['latitude'] ?>"
-                                        data-lng="<?= $addr['longitude'] ?>"
+                                        data-latitude="<?= $addr['latitude'] ?? '' ?>"
+                                        data-longitude="<?= $addr['longitude'] ?? '' ?>"
                                         <?= $addr['is_default'] ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($addr['label']) ?> - <?= htmlspecialchars($addr['recipient_name']) ?>
                                     <?= $addr['is_default'] ? '(Default)' : '' ?>
@@ -655,15 +658,27 @@ document.getElementById('savedAddressSelect')?.addEventListener('change', functi
     const selectedOption = this.options[this.selectedIndex];
 
     if (this.value) {
-        document.getElementById('recipientName').value = selectedOption.dataset.name || '';
+        // Fix: Use correct data attribute names
+        document.getElementById('recipientName').value = selectedOption.dataset.recipientName || '';
         document.getElementById('recipientPhone').value = selectedOption.dataset.phone || '';
         document.getElementById('recipientAddress').value = selectedOption.dataset.address || '';
-        document.getElementById('latitude').value = selectedOption.dataset.lat || '';
-        document.getElementById('longitude').value = selectedOption.dataset.lng || '';
+        document.getElementById('latitude').value = selectedOption.dataset.latitude || '';
+        document.getElementById('longitude').value = selectedOption.dataset.longitude || '';
 
-        if (selectedOption.dataset.lat && selectedOption.dataset.lng) {
-            fetchShippingRates(selectedOption.dataset.lat, selectedOption.dataset.lng);
+        // Auto-trigger shipping calculation
+        if (selectedOption.dataset.latitude && selectedOption.dataset.longitude) {
+            console.log('Address selected, calculating shipping...');
+            fetchShippingRates(selectedOption.dataset.latitude, selectedOption.dataset.longitude);
+        } else {
+            console.warn('Address missing coordinates');
         }
+    } else {
+        // Clear fields if deselected
+        document.getElementById('recipientName').value = '';
+        document.getElementById('recipientPhone').value = '';
+        document.getElementById('recipientAddress').value = '';
+        document.getElementById('latitude').value = '';
+        document.getElementById('longitude').value = '';
     }
 });
 
@@ -1194,5 +1209,8 @@ $midtrans = new MidtransHelper($pdo);
     border-radius: 10px; font-weight: 600; cursor: pointer;
 }
 </style>
+
+<!-- Checkout Fixes JavaScript -->
+<script src="/includes/checkout-fixes.js"></script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

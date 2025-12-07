@@ -17,6 +17,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
 <!-- Global Responsive Styles for All Member Pages -->
 <link rel="stylesheet" href="/includes/member-responsive.css">
 
+<!-- Member Layout Fix - Professional Desktop & Mobile -->
+<link rel="stylesheet" href="/includes/member-layout-fix.css">
+
 <style>
     :root {
         --sidebar-bg: #FFFFFF;
