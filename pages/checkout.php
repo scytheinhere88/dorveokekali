@@ -14,786 +14,1382 @@ $stmt->execute([$userId]);
 $savedAddresses = $stmt->fetchAll();
 
 // Get cart items
-if (isLoggedIn()) {
-    $stmt = $pdo->prepare("SELECT ci.*, p.name, p.price, pv.size, pv.color FROM cart_items ci JOIN products p ON ci.product_id = p.id LEFT JOIN product_variants pv ON ci.variant_id = pv.id WHERE ci.user_id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
-} else {
-    $stmt = $pdo->prepare("SELECT ci.*, p.name, p.price, pv.size, pv.color FROM cart_items ci JOIN products p ON ci.product_id = p.id LEFT JOIN product_variants pv ON ci.variant_id = pv.id WHERE ci.session_id = ?");
-    $stmt->execute([session_id()]);
-}
-
+$stmt = $pdo->prepare("SELECT ci.*, p.name, p.price, pv.size, pv.color 
+                       FROM cart_items ci 
+                       JOIN products p ON ci.product_id = p.id 
+                       LEFT JOIN product_variants pv ON ci.variant_id = pv.id 
+                       WHERE ci.user_id = ?");
+$stmt->execute([$userId]);
 $cart_items = $stmt->fetchAll();
 
 // Redirect if cart is empty
 if (empty($cart_items)) {
     $_SESSION['error_message'] = 'Your cart is empty!';
-    header('Location: /pages/cart.php');
-    exit;
+    redirect('/pages/cart.php');
 }
 
 $subtotal = array_sum(array_map(fn($item) => $item['price'] * $item['qty'], $cart_items));
 
-$page_title = 'Checkout - Selesaikan Pembayaran Baju Wanita Online | Gratis Ongkir & COD Dorve';
-$page_description = 'Checkout pesanan baju wanita Anda dengan aman. Pilih metode pembayaran: transfer bank, e-wallet, COD. Gratis ongkir min Rp500.000. Proses cepat dan mudah.';
-$page_keywords = 'checkout, pembayaran online, transfer bank, cod, e-wallet, bayar baju online, selesaikan pesanan';
+// Get payment methods
+$stmt = $pdo->query("SELECT * FROM payment_methods WHERE is_active = 1 ORDER BY display_order");
+$payment_methods = $stmt->fetchAll();
+
+// Get payment settings
+$stmt = $pdo->query("SELECT * FROM payment_settings WHERE id = 1");
+$payment_settings = $stmt->fetch();
+
+$page_title = 'Checkout - Selesaikan Pembayaran | Dorve House';
+$page_description = 'Checkout pesanan baju wanita Anda dengan aman. Pilih metode pembayaran: transfer bank, e-wallet, COD. Gratis ongkir min Rp500.000.';
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<!-- Checkout Luxury Style -->
-<link rel="stylesheet" href="/includes/checkout-luxury-style.css">
-
 <style>
-    * { box-sizing: border-box; }
-    .checkout-container {
-        max-width: 1400px; margin: 100px auto 60px; padding: 0 40px;
-        display: grid; grid-template-columns: 1.2fr 480px; gap: 50px;
+/* ================================================================
+   ULTIMATE PROFESSIONAL CHECKOUT DESIGN 2024
+   Modern, Clean, Fully Responsive, Production Ready
+   ================================================================ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Main Container */
+.checkout-wrapper {
+    max-width: 1400px;
+    margin: 100px auto 80px;
+    padding: 0 40px;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 60px;
+    align-items: flex-start;
+}
+
+/* LEFT SIDE - CHECKOUT FORM */
+.checkout-form-area {
+    width: 100%;
+}
+
+.checkout-main-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #1F2937;
+    line-height: 1.2;
+}
+
+.checkout-subtitle {
+    font-size: 17px;
+    color: #6B7280;
+    margin-bottom: 48px;
+    line-height: 1.6;
+}
+
+/* Form Sections */
+.form-section-box {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 32px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-section-box:hover {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    transform: translateY(-4px);
+}
+
+.section-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1F2937;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.section-title::before {
+    content: '';
+    width: 5px;
+    height: 32px;
+    background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+    border-radius: 3px;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 10px;
+}
+
+.form-group label .required {
+    color: #EF4444;
+    margin-left: 4px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 16px 20px;
+    border: 2px solid #E5E7EB;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    background: #F9FAFB;
+    transition: all 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #667EEA;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Shipping/Payment Option Cards */
+.option-card {
+    display: flex;
+    align-items: center;
+    padding: 20px 24px;
+    border: 2px solid #E5E7EB;
+    border-radius: 14px;
+    margin-bottom: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #F9FAFB;
+    position: relative;
+}
+
+.option-card:hover {
+    border-color: #667EEA;
+    background: white;
+    transform: translateX(4px);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+}
+
+.option-card.selected {
+    border-color: #667EEA;
+    background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.25);
+}
+
+.option-card input[type="radio"] {
+    width: 22px;
+    height: 22px;
+    margin-right: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.option-card-content {
+    flex: 1;
+}
+
+.option-card-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1F2937;
+    margin-bottom: 4px;
+}
+
+.option-card-desc {
+    font-size: 14px;
+    color: #6B7280;
+    line-height: 1.5;
+}
+
+.option-card-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: #667EEA;
+    margin-left: 12px;
+    flex-shrink: 0;
+}
+
+.option-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Loading State */
+.loading-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6B7280;
+}
+
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 5px solid #E5E7EB;
+    border-top-color: #667EEA;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* RIGHT SIDE - ORDER SUMMARY */
+.order-summary-sidebar {
+    background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
+    border-radius: 24px;
+    padding: 40px;
+    color: white;
+    position: sticky;
+    top: 120px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.summary-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 32px;
+    color: white;
+}
+
+.cart-items-list {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.cart-item-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.cart-item-name {
+    flex: 1;
+}
+
+.cart-item-price {
+    font-weight: 600;
+    color: white;
+}
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    font-size: 15px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.summary-line-label {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.summary-line-value {
+    font-weight: 600;
+    color: white;
+}
+
+/* Voucher Section in Summary */
+.voucher-section-summary {
+    margin: 28px 0;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 14px;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+}
+
+.btn-open-voucher {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.btn-open-voucher:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
+}
+
+#applied-vouchers-container {
+    margin-top: 16px;
+}
+
+.applied-voucher {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(16, 185, 129, 0.2);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.applied-voucher .code {
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    color: #10B981;
+    font-size: 15px;
+}
+
+.remove-voucher {
+    color: #EF4444;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: 700;
+    transition: all 0.2s;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.remove-voucher:hover {
+    background: rgba(239, 68, 68, 0.3);
+    transform: scale(1.1);
+}
+
+/* Total Price */
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 28px;
+    margin-top: 28px;
+    border-top: 2px solid rgba(255, 255, 255, 0.2);
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+}
+
+/* ULTIMATE CHECKOUT BUTTON */
+.btn-place-order {
+    width: 100%;
+    padding: 22px;
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 32px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-place-order::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-place-order:hover::before {
+    width: 400px;
+    height: 400px;
+}
+
+.btn-place-order:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(16, 185, 129, 0.5);
+}
+
+.btn-place-order:active {
+    transform: translateY(-2px);
+}
+
+.btn-place-order:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* VOUCHER MODAL - SUPER PREMIUM */
+.voucher-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(12px);
+    animation: fadeIn 0.3s;
+    align-items: center;
+    justify-content: center;
+}
+
+.voucher-modal.show {
+    display: flex;
+}
+
+.voucher-modal-content {
+    background: white;
+    border-radius: 28px;
+    max-width: 920px;
+    width: 92%;
+    max-height: 88vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 72px rgba(0, 0, 0, 0.4);
+    animation: slideUp 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.voucher-modal-header {
+    padding: 36px;
+    background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+    color: white;
+    border-radius: 28px 28px 0 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.voucher-modal-header h2 {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.voucher-modal-header p {
+    font-size: 16px;
+    opacity: 0.95;
+}
+
+.close-modal {
+    position: absolute;
+    right: 28px;
+    top: 28px;
+    font-size: 36px;
+    cursor: pointer;
+    color: white;
+    transition: all 0.3s;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.close-modal:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: rotate(90deg) scale(1.1);
+}
+
+.voucher-modal-body {
+    padding: 40px;
+}
+
+.voucher-type-section {
+    margin-bottom: 48px;
+}
+
+.voucher-type-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #1F2937;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.vouchers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.voucher-card-mini {
+    background: white;
+    border: 2px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.voucher-card-mini::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #667EEA, #764BA2);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.voucher-card-mini:hover {
+    border-color: #667EEA;
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+    transform: translateY(-4px);
+}
+
+.voucher-card-mini:hover::before {
+    opacity: 1;
+}
+
+.voucher-card-mini.selected {
+    border-color: #10B981;
+    background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+
+.voucher-card-mini.selected::before {
+    background: linear-gradient(90deg, #10B981, #059669);
+    opacity: 1;
+}
+
+.voucher-card-mini.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    background: #10B981;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.voucher-code-mini {
+    font-family: 'Courier New', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: #667EEA;
+    margin-bottom: 8px;
+}
+
+.voucher-card-mini.selected .voucher-code-mini {
+    color: #10B981;
+}
+
+.voucher-name-mini {
+    font-size: 15px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 16px;
+}
+
+.voucher-value-mini {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1F2937;
+    margin-bottom: 12px;
+}
+
+.voucher-condition-mini {
+    font-size: 13px;
+    color: #6B7280;
+    margin-bottom: 6px;
+}
+
+.voucher-modal-footer {
+    padding: 28px 40px;
+    background: #F9FAFB;
+    border-top: 1px solid #E5E7EB;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    bottom: 0;
+}
+
+.selected-count {
+    font-size: 16px;
+    color: #6B7280;
+    font-weight: 600;
+}
+
+.btn-apply-vouchers {
+    padding: 14px 36px;
+    background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-apply-vouchers:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+}
+
+/* Bank Transfer Modal */
+.bank-modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(12px);
+    align-items: center;
+    justify-content: center;
+}
+
+.bank-modal.show {
+    display: flex;
+}
+
+.bank-modal-content {
+    background: white;
+    border-radius: 28px;
+    max-width: 600px;
+    width: 92%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 72px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.5s;
+}
+
+.bank-modal-header {
+    padding: 36px;
+    background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
+    color: white;
+    border-radius: 28px 28px 0 0;
+    text-align: center;
+}
+
+.bank-modal-header h2 {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.bank-modal-body {
+    padding: 40px;
+}
+
+.transfer-amount-display {
+    text-align: center;
+    padding: 32px;
+    background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+    border-radius: 16px;
+    margin-bottom: 32px;
+    border: 2px solid #C7D2FE;
+}
+
+.transfer-amount-label {
+    font-size: 14px;
+    color: #6B7280;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.transfer-amount-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: #667EEA;
+}
+
+.bank-list {
+    margin: 32px 0;
+}
+
+.bank-list h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #1F2937;
+}
+
+.bank-item {
+    background: #F9FAFB;
+    padding: 20px 24px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    border: 1px solid #E5E7EB;
+}
+
+.bank-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1F2937;
+    margin-bottom: 4px;
+}
+
+.bank-details {
+    font-size: 14px;
+    color: #6B7280;
+}
+
+.bank-account-number {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #667EEA;
+    margin-top: 8px;
+}
+
+.btn-understood {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 24px;
+}
+
+.btn-understood:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 1024px) {
+    .checkout-wrapper {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        padding: 0 24px;
+        margin: 80px auto 60px;
     }
 
-    /* Modern Checkout Form */
-    .checkout-form h2 {
-        font-family: 'Playfair Display', serif; font-size: 40px;
-        margin-bottom: 12px; font-weight: 700;
-        background: linear-gradient(135deg, #1A1A1A 0%, #667EEA 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+    .order-summary-sidebar {
+        position: relative;
+        top: 0;
+        order: 2;
     }
+
+    .checkout-main-title {
+        font-size: 36px;
+    }
+}
+
+@media (max-width: 768px) {
+    .checkout-wrapper {
+        padding: 0 20px;
+        margin: 70px auto 40px;
+    }
+
+    .checkout-main-title {
+        font-size: 32px;
+        margin-bottom: 12px;
+    }
+
     .checkout-subtitle {
-        color: #6B7280; font-size: 16px; margin-bottom: 40px;
+        font-size: 15px;
+        margin-bottom: 32px;
     }
 
-    .form-section {
-        background: white; padding: 32px; border-radius: 16px;
-        margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-        border: 1px solid #E5E7EB; transition: all 0.3s;
-    }
-    .form-section:hover {
-        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-        transform: translateY(-2px);
+    .form-section-box {
+        padding: 28px 24px;
+        margin-bottom: 24px;
+        border-radius: 16px;
     }
 
-    .form-section h3 {
-        font-size: 22px; margin-bottom: 24px; font-weight: 700;
-        display: flex; align-items: center; gap: 12px;
-        color: #1F2937;
-    }
-    .form-section h3::before {
-        content: ''; width: 4px; height: 24px;
-        background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
-        border-radius: 2px;
+    .section-title {
+        font-size: 20px;
+        margin-bottom: 24px;
     }
 
-    .form-group { margin-bottom: 20px; }
-    .form-group label {
-        display: block; margin-bottom: 10px; font-weight: 600;
-        font-size: 14px; color: #374151;
-    }
-    .form-group input, .form-group select, .form-group textarea {
-        width: 100%; padding: 14px 18px;
-        border: 2px solid #E5E7EB; border-radius: 10px;
-        font-size: 15px; font-family: 'Inter', sans-serif;
-        transition: all 0.3s; background: #F9FAFB;
-    }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-        outline: none; border-color: #667EEA; background: white;
-        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-    }
-    .form-group textarea { min-height: 100px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-
-    .address-selector {
-        margin-bottom: 20px;
-    }
-    .btn-new-address {
-        width: 100%; padding: 12px;
-        background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
-        color: white; border: none; border-radius: 10px;
-        font-size: 14px; font-weight: 600; cursor: pointer;
-        transition: all 0.3s; display: flex; align-items: center;
-        justify-content: center; gap: 8px; margin-top: 12px;
-    }
-    .btn-new-address:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    .section-title::before {
+        width: 4px;
+        height: 24px;
     }
 
-    /* Modern Payment/Shipping Method Cards */
-    .shipping-method, .payment-method {
-        display: flex; align-items: center; padding: 18px 20px;
-        border: 2px solid #E5E7EB; border-radius: 12px;
-        margin-bottom: 12px; cursor: pointer;
-        transition: all 0.3s; background: #F9FAFB;
-        position: relative; overflow: hidden;
-    }
-    .shipping-method::before, .payment-method::before {
-        content: ''; position: absolute; left: 0; top: 0;
-        width: 0; height: 100%;
-        background: linear-gradient(90deg, rgba(102,126,234,0.1) 0%, transparent 100%);
-        transition: width 0.3s;
-    }
-    .shipping-method:hover, .payment-method:hover {
-        border-color: #667EEA; background: white;
-        transform: translateX(4px);
-    }
-    .shipping-method:hover::before, .payment-method:hover::before { width: 100%; }
-    .shipping-method input, .payment-method input { margin-right: 14px; width: 20px; height: 20px; }
-    .shipping-method.selected, .payment-method.selected {
-        border-color: #667EEA; background: #EEF2FF;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-    }
-    .shipping-method.disabled {
-        opacity: 0.5; cursor: not-allowed;
+    .form-row-2 {
+        grid-template-columns: 1fr;
+        gap: 16px;
     }
 
-    .shipping-rates-loading {
-        text-align: center; padding: 40px; color: #6B7280;
-    }
-    .shipping-rates-loading .spinner {
-        display: inline-block; width: 40px; height: 40px;
-        border: 4px solid #E5E7EB; border-top-color: #667EEA;
-        border-radius: 50%; animation: spin 1s linear infinite;
-        margin-bottom: 16px;
-    }
-    @keyframes spin {
-        to { transform: rotate(360deg); }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 14px 16px;
+        font-size: 16px; /* Prevent iOS zoom */
+        border-radius: 10px;
     }
 
-    /* Premium Order Summary */
-    .order-summary {
-        background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
-        padding: 36px; border-radius: 20px; position: sticky; top: 120px;
-        height: fit-content; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-        color: white;
-    }
-    .order-summary h3 {
-        font-family: 'Playfair Display', serif; font-size: 28px;
-        margin-bottom: 28px; color: white; font-weight: 700;
+    .option-card {
+        padding: 16px 20px;
+        border-radius: 12px;
     }
 
-    .summary-item {
-        display: flex; justify-content: space-between;
-        margin-bottom: 16px; font-size: 15px; color: rgba(255,255,255,0.9);
-        padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    .summary-item:last-of-type { border-bottom: none; }
-
-    /* Voucher Section in Summary */
-    .voucher-section {
-        margin: 24px 0; padding: 20px;
-        background: rgba(255,255,255,0.05);
-        border-radius: 12px; border: 1px dashed rgba(255,255,255,0.2);
-    }
-    .btn-voucher {
-        width: 100%; padding: 14px;
-        background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
-        color: white; border: none; border-radius: 10px;
-        font-size: 15px; font-weight: 600; cursor: pointer;
-        transition: all 0.3s; display: flex; align-items: center;
-        justify-content: center; gap: 10px;
-    }
-    .btn-voucher:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    .option-card-name {
+        font-size: 15px;
     }
 
-    .applied-voucher {
-        margin-top: 12px; padding: 12px;
-        background: rgba(16, 185, 129, 0.15);
-        border-radius: 8px; font-size: 13px;
-        display: flex; justify-content: space-between; align-items: center;
+    .option-card-desc {
+        font-size: 13px;
     }
-    .applied-voucher .code {
-        font-weight: 700; font-family: 'Courier New', monospace;
-        color: #10B981;
+
+    .option-card-price {
+        font-size: 16px;
     }
-    .remove-voucher {
-        color: #EF4444; cursor: pointer; font-size: 18px;
-        transition: all 0.2s;
+
+    .order-summary-sidebar {
+        padding: 32px 24px;
+        border-radius: 20px;
     }
-    .remove-voucher:hover { transform: scale(1.2); }
+
+    .summary-title {
+        font-size: 28px;
+        margin-bottom: 24px;
+    }
 
     .summary-total {
-        display: flex; justify-content: space-between;
-        padding-top: 24px; margin-top: 24px;
-        border-top: 2px solid rgba(255,255,255,0.2);
-        font-size: 28px; font-weight: 700;
-        font-family: 'Playfair Display', serif;
-        color: white;
+        font-size: 28px;
     }
 
-    /* ULTIMATE CHECKOUT BUTTON 🔥 */
-    .btn-checkout {
-        width: 100%; padding: 20px;
-        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-        color: white; border: none; border-radius: 14px;
-        font-size: 18px; font-weight: 700; cursor: pointer;
-        margin-top: 28px; transition: all 0.3s;
-        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
-        position: relative; overflow: hidden;
-        text-transform: uppercase; letter-spacing: 1px;
+    .btn-place-order {
+        padding: 18px;
+        font-size: 16px;
+        border-radius: 14px;
     }
-    .btn-checkout::before {
-        content: ''; position: absolute; top: 50%; left: 50%;
-        width: 0; height: 0; border-radius: 50%;
-        background: rgba(255,255,255,0.3);
-        transform: translate(-50%, -50%);
-        transition: width 0.6s, height 0.6s;
-    }
-    .btn-checkout:hover::before {
-        width: 300px; height: 300px;
-    }
-    .btn-checkout:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 32px rgba(16, 185, 129, 0.5);
-    }
-    .btn-checkout:active {
-        transform: translateY(-2px);
-    }
-    .btn-checkout:disabled {
-        opacity: 0.6; cursor: not-allowed;
-    }
-
-    /* VOUCHER MODAL - SUPER PREMIUM 💎 */
-    .voucher-modal {
-        display: none; position: fixed; z-index: 9999;
-        left: 0; top: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
-        animation: fadeIn 0.3s;
-    }
-    .voucher-modal.show { display: flex; justify-content: center; align-items: center; }
 
     .voucher-modal-content {
-        background: white; border-radius: 24px;
-        max-width: 900px; width: 90%; max-height: 85vh;
-        overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        animation: slideUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        width: 96%;
+        max-height: 92vh;
+        border-radius: 20px;
     }
 
     .voucher-modal-header {
-        padding: 32px; background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
-        color: white; border-radius: 24px 24px 0 0; position: sticky; top: 0; z-index: 10;
+        padding: 28px 24px;
+        border-radius: 20px 20px 0 0;
     }
+
     .voucher-modal-header h2 {
-        font-size: 32px; font-weight: 700; margin-bottom: 8px;
+        font-size: 28px;
     }
+
     .voucher-modal-header p {
-        font-size: 15px; opacity: 0.95;
+        font-size: 14px;
     }
+
     .close-modal {
-        position: absolute; right: 24px; top: 24px;
-        font-size: 32px; cursor: pointer; color: white;
-        transition: all 0.3s; width: 40px; height: 40px;
-        display: flex; align-items: center; justify-content: center;
-        border-radius: 50%; background: rgba(255,255,255,0.1);
-    }
-    .close-modal:hover {
-        background: rgba(255,255,255,0.2);
-        transform: rotate(90deg);
+        width: 40px;
+        height: 40px;
+        font-size: 28px;
+        right: 20px;
+        top: 20px;
     }
 
-    .voucher-modal-body { padding: 32px; }
-
-    .voucher-type-section {
-        margin-bottom: 36px;
+    .voucher-modal-body {
+        padding: 24px 20px;
     }
+
     .voucher-type-title {
-        font-size: 22px; font-weight: 700; margin-bottom: 20px;
-        display: flex; align-items: center; gap: 12px;
-        color: #1F2937;
+        font-size: 20px;
+        margin-bottom: 20px;
     }
 
-    .voucher-grid {
-        display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 20px;
+    .vouchers-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
     }
 
     .voucher-card-mini {
-        background: white; border-radius: 16px;
-        border: 2px solid #E5E7EB; cursor: pointer;
-        transition: all 0.3s; overflow: hidden;
-        position: relative;
-    }
-    .voucher-card-mini:hover {
-        border-color: #667EEA;
-        transform: translateY(-4px);
-        box-shadow: 0 12px 28px rgba(102, 126, 234, 0.2);
-    }
-    .voucher-card-mini.selected {
-        border-color: #10B981; background: #ECFDF5;
-        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
-    }
-    .voucher-card-mini.selected::after {
-        content: '✓'; position: absolute; right: 12px; top: 12px;
-        background: #10B981; color: white; width: 28px; height: 28px;
-        border-radius: 50%; display: flex; align-items: center;
-        justify-content: center; font-weight: 700;
-    }
-
-    .voucher-card-header-mini {
-        padding: 20px; background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
-        color: white;
-    }
-    .voucher-card-header-mini.free-shipping {
-        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-    }
-    .voucher-code-mini {
-        font-size: 20px; font-weight: 700;
-        font-family: 'Courier New', monospace; margin-bottom: 4px;
-    }
-    .voucher-name-mini {
-        font-size: 14px; opacity: 0.95;
-    }
-
-    .voucher-card-body-mini {
         padding: 20px;
     }
-    .voucher-value-mini {
-        font-size: 24px; font-weight: 700;
-        color: #1F2937; margin-bottom: 12px;
-    }
-    .voucher-condition-mini {
-        font-size: 13px; color: #6B7280; margin-bottom: 6px;
-        display: flex; align-items: center; gap: 6px;
+
+    .voucher-modal-footer {
+        padding: 20px 24px;
+        flex-direction: column;
+        gap: 16px;
     }
 
-    .modal-footer {
-        padding: 24px 32px; background: #F9FAFB;
-        border-top: 1px solid #E5E7EB; display: flex;
-        justify-content: space-between; align-items: center;
-        position: sticky; bottom: 0;
-    }
     .btn-apply-vouchers {
-        padding: 14px 32px;
-        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-        color: white; border: none; border-radius: 10px;
-        font-size: 16px; font-weight: 600; cursor: pointer;
-        transition: all 0.3s;
-    }
-    .btn-apply-vouchers:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        width: 100%;
     }
 
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    @keyframes slideUp {
-        from { transform: translateY(100px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
+    .bank-modal-content {
+        width: 96%;
+        border-radius: 20px;
     }
 
-    @media (max-width: 1024px) {
-        .checkout-container { grid-template-columns: 1fr; gap: 30px; }
-        .order-summary { position: relative; top: 0; }
-        .voucher-grid { grid-template-columns: 1fr; }
-        .form-row { grid-template-columns: 1fr; }
+    .bank-modal-header {
+        padding: 28px 24px;
     }
+
+    .bank-modal-header h2 {
+        font-size: 28px;
+    }
+
+    .bank-modal-body {
+        padding: 28px 24px;
+    }
+
+    .transfer-amount-display {
+        padding: 24px;
+    }
+
+    .transfer-amount-value {
+        font-size: 36px;
+    }
+}
+
+@media (max-width: 480px) {
+    .checkout-wrapper {
+        padding: 0 16px;
+        margin: 60px auto 30px;
+    }
+
+    .checkout-main-title {
+        font-size: 28px;
+    }
+
+    .form-section-box {
+        padding: 24px 20px;
+    }
+
+    .section-title {
+        font-size: 18px;
+    }
+
+    .order-summary-sidebar {
+        padding: 28px 20px;
+    }
+
+    .summary-title {
+        font-size: 24px;
+    }
+
+    .cart-item-row,
+    .summary-line {
+        font-size: 14px;
+    }
+
+    .summary-total {
+        font-size: 24px;
+    }
+}
 </style>
 
-<div class="checkout-container">
-    <div class="checkout-form">
-        <h2>🛍️ Checkout</h2>
-        <p class="checkout-subtitle">Complete your order in just a few steps</p>
+<!-- MAIN CHECKOUT WRAPPER -->
+<div class="checkout-wrapper">
 
-        <form action="/api/orders/create.php" method="POST" id="checkoutForm">
-            <div class="form-section">
-                <h3>📍 Shipping Address</h3>
+    <!-- LEFT SIDE: CHECKOUT FORM -->
+    <div class="checkout-form-area">
+        
+        <h1 class="checkout-main-title">Complete Your Order</h1>
+        <p class="checkout-subtitle">Fill in your shipping details and select your preferred payment method to complete your purchase.</p>
+
+        <form id="checkout-form" method="POST">
+
+            <!-- SECTION 1: SHIPPING ADDRESS -->
+            <div class="form-section-box">
+                <h3 class="section-title">📍 Shipping Address</h3>
 
                 <?php if (!empty($savedAddresses)): ?>
-                <div class="address-selector">
-                    <div class="form-group">
-                        <label>Select Saved Address *</label>
-                        <select id="savedAddressSelect" name="saved_address_id" class="form-control">
-                            <option value="">-- Select an address or fill manually --</option>
-                            <?php foreach ($savedAddresses as $addr): ?>
-                                <option value="<?= $addr['id'] ?>"
-                                        data-recipient-name="<?= htmlspecialchars($addr['recipient_name']) ?>"
-                                        data-phone="<?= htmlspecialchars($addr['phone']) ?>"
-                                        data-address="<?= htmlspecialchars($addr['address']) ?>"
-                                        data-latitude="<?= $addr['latitude'] ?? '' ?>"
-                                        data-longitude="<?= $addr['longitude'] ?? '' ?>"
-                                        <?= $addr['is_default'] ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($addr['label']) ?> - <?= htmlspecialchars($addr['recipient_name']) ?>
-                                    <?= $addr['is_default'] ? '(Default)' : '' ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <button type="button" class="btn-new-address" onclick="window.location.href='/member/address-book.php'">
-                        <span>➕</span> Add New Address
-                    </button>
-                </div>
-                <?php else: ?>
-                <div style="background: #FEF3C7; padding: 16px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #F59E0B;">
-                    <p style="color: #92400E; margin: 0;">
-                        ⚠️ You don't have any saved addresses yet. <a href="/member/address-book.php" style="color: #667EEA; text-decoration: underline;">Add one now</a> for faster checkout!
-                    </p>
+                <div class="form-group">
+                    <label>Saved Addresses</label>
+                    <select id="saved-address-select" class="form-select">
+                        <option value="">Select a saved address</option>
+                        <?php foreach ($savedAddresses as $addr): ?>
+                            <option value="<?= $addr['id'] ?>" 
+                                    data-name="<?= htmlspecialchars($addr['recipient_name']) ?>"
+                                    data-phone="<?= htmlspecialchars($addr['phone']) ?>"
+                                    data-address="<?= htmlspecialchars($addr['address']) ?>"
+                                    data-lat="<?= $addr['latitude'] ?>"
+                                    data-lng="<?= $addr['longitude'] ?>"
+                                    <?= $addr['is_default'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($addr['label']) ?> - <?= htmlspecialchars($addr['recipient_name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <?php endif; ?>
 
-                <div class="form-group">
-                    <label>Recipient Name *</label>
-                    <input type="text" name="name" id="recipientName" value="<?php echo htmlspecialchars($user['name']); ?>" required>
-                </div>
-                <div class="form-row">
+                <div class="form-row-2">
                     <div class="form-group">
-                        <label>Phone *</label>
-                        <input type="tel" name="phone" id="recipientPhone" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>" required>
+                        <label>Recipient Name <span class="required">*</span></label>
+                        <input type="text" id="recipient-name" name="recipient_name" required 
+                               value="<?= htmlspecialchars($user['name'] ?? '') ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number <span class="required">*</span></label>
+                        <input type="tel" id="phone" name="phone" required 
+                               value="<?= htmlspecialchars($user['phone'] ?? '') ?>">
                     </div>
                 </div>
+
                 <div class="form-group">
-                    <label>Full Address *</label>
-                    <textarea name="address" id="recipientAddress" required><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
+                    <label>Full Address <span class="required">*</span></label>
+                    <textarea id="address" name="address" required><?= htmlspecialchars($user['address'] ?? '') ?></textarea>
                 </div>
 
-                <input type="hidden" name="latitude" id="latitude">
-                <input type="hidden" name="longitude" id="longitude">
+                <input type="hidden" id="latitude" name="latitude">
+                <input type="hidden" id="longitude" name="longitude">
+
+                <a href="/member/address-book.php" class="btn-new-address" style="display: inline-block; padding: 12px 20px; background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; text-align: center; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                    ➕ Add New Address
+                </a>
             </div>
 
-            <div class="form-section">
-                <h3>🚚 Shipping Method</h3>
-                <div id="shippingRatesContainer">
-                    <div class="shipping-rates-loading">
-                        <div class="spinner"></div>
-                        <p>Select an address to calculate shipping rates...</p>
-                    </div>
+            <!-- SECTION 2: SHIPPING METHOD -->
+            <div class="form-section-box">
+                <h3 class="section-title">🚚 Shipping Method</h3>
+                
+                <div id="shipping-rates-container" class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading shipping options...</p>
                 </div>
             </div>
 
-            <div class="form-section">
-                <h3>💳 Payment Method</h3>
-
-                <?php
-                // Get enabled payment methods
-                $stmt = $pdo->query("SELECT * FROM payment_methods WHERE is_active = 1 ORDER BY sort_order");
-                $paymentMethods = $stmt->fetchAll();
-
-                // Get payment settings
-                $stmt = $pdo->query("SELECT setting_key, setting_value FROM payment_settings");
-                $settings = [];
-                while ($row = $stmt->fetch()) {
-                    $settings[$row['setting_key']] = $row['setting_value'];
-                }
-
-                $walletBalance = $user['wallet_balance'] ?? 0;
-                $midtransEnabled = ($settings['midtrans_enabled'] ?? '0') == '1';
-                $bankTransferEnabled = ($settings['bank_transfer_enabled'] ?? '0') == '1';
-                ?>
+            <!-- SECTION 3: PAYMENT METHOD -->
+            <div class="form-section-box">
+                <h3 class="section-title">💳 Payment Method</h3>
 
                 <!-- Dorve Wallet -->
-                <div class="payment-method" style="background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%); color: white; border-color: #1A1A1A;" data-method="wallet">
-                    <input type="radio" name="payment_method" value="wallet" id="pm_wallet" <?= $walletBalance > 0 ? '' : 'disabled' ?>>
-                    <div style="flex: 1;">
-                        <strong>💰 Dorve Wallet</strong>
-                        <div style="font-size: 13px; opacity: 0.9;">
-                            Balance: <strong><?php echo formatPrice($walletBalance); ?></strong>
-                            <?php if ($walletBalance == 0): ?>
-                                <span style="color: #EF4444; display: block; margin-top: 4px;">⚠️ Insufficient balance. Please topup first.</span>
-                            <?php endif; ?>
-                        </div>
+                <div class="option-card <?= $user['wallet_balance'] > 0 ? '' : 'disabled' ?>" onclick="selectPaymentMethod('wallet', this)">
+                    <input type="radio" name="payment_method" value="wallet" id="payment-wallet" <?= $user['wallet_balance'] > 0 ? '' : 'disabled' ?>>
+                    <div class="option-card-content">
+                        <div class="option-card-name">💰 Dorve Wallet</div>
+                        <div class="option-card-desc">Balance: Rp <?= number_format($user['wallet_balance'], 0, ',', '.') ?></div>
                     </div>
                 </div>
 
-                <!-- Midtrans Payment Gateway -->
-                <?php if ($midtransEnabled): ?>
-                <div class="payment-method" data-method="midtrans">
-                    <input type="radio" name="payment_method" value="midtrans" id="pm_midtrans">
-                    <div style="flex: 1;">
-                        <strong>🌐 Payment Gateway (Midtrans)</strong>
-                        <div style="font-size: 13px; color: #6B7280;">Bank Transfer, E-Wallet, Kartu Kredit/Debit</div>
+                <?php if ($payment_settings && $payment_settings['midtrans_enabled']): ?>
+                <!-- Midtrans -->
+                <div class="option-card" onclick="selectPaymentMethod('midtrans', this)">
+                    <input type="radio" name="payment_method" value="midtrans" id="payment-midtrans">
+                    <div class="option-card-content">
+                        <div class="option-card-name">💳 Credit/Debit Card & E-Wallet</div>
+                        <div class="option-card-desc">Pay with Midtrans (Bank Transfer, QRIS, Gopay, OVO, etc.)</div>
                     </div>
                 </div>
                 <?php endif; ?>
 
+                <?php if ($payment_settings && $payment_settings['bank_transfer_enabled']): ?>
                 <!-- Direct Bank Transfer -->
-                <?php if ($bankTransferEnabled): ?>
-                <div class="payment-method" data-method="bank_transfer">
-                    <input type="radio" name="payment_method" value="bank_transfer" id="pm_bank">
-                    <div style="flex: 1;">
-                        <strong>🏦 Direct Bank Transfer</strong>
-                        <div style="font-size: 13px; color: #6B7280;">Transfer manual ke rekening bank (dengan kode unik)</div>
+                <div class="option-card" onclick="selectPaymentMethod('bank_transfer', this)">
+                    <input type="radio" name="payment_method" value="bank_transfer" id="payment-bank">
+                    <div class="option-card-content">
+                        <div class="option-card-name">🏦 Direct Bank Transfer</div>
+                        <div class="option-card-desc">Manual transfer to our bank account with unique code</div>
                     </div>
-                </div>
-                <?php endif; ?>
-
-                <?php if (!$midtransEnabled && !$bankTransferEnabled && $walletBalance == 0): ?>
-                <div style="padding: 20px; text-align: center; color: #EF4444;">
-                    <p>❌ No payment method available. Please contact admin.</p>
                 </div>
                 <?php endif; ?>
             </div>
 
-            <input type="hidden" name="voucher_discount" id="voucher_discount_input" value="">
-            <input type="hidden" name="voucher_free_shipping" id="voucher_free_shipping_input" value="">
-            <input type="hidden" name="voucher_codes" id="voucher_codes_input" value="">
-            <input type="hidden" name="shipping_cost" id="shipping_cost_input" value="0">
-            <input type="hidden" name="courier_code" id="courier_code_input" value="">
-            <input type="hidden" name="courier_service" id="courier_service_input" value="">
-            <input type="hidden" name="action" value="create_order">
+            <!-- Hidden Fields -->
+            <input type="hidden" name="voucher_discount" id="voucher-discount-input" value="0">
+            <input type="hidden" name="voucher_free_shipping" id="voucher-free-shipping-input" value="0">
+            <input type="hidden" name="voucher_codes" id="voucher-codes-input" value="">
+            <input type="hidden" name="shipping_cost" id="shipping-cost-input" value="0">
+            <input type="hidden" name="courier_code" id="courier-code-input" value="">
+            <input type="hidden" name="courier_service" id="courier-service-input" value="">
 
-            <button type="button" class="btn-checkout" onclick="processCheckout()" id="checkoutButton" disabled>
-                🎉 Complete Purchase
-            </button>
         </form>
+
     </div>
 
-    <div class="order-summary">
-        <h3>💰 Order Summary</h3>
+    <!-- RIGHT SIDE: ORDER SUMMARY -->
+    <div class="order-summary-sidebar">
+        <h3 class="summary-title">💰 Order Summary</h3>
 
-        <?php foreach ($cart_items as $item): ?>
-            <div class="summary-item">
-                <span><?php echo htmlspecialchars($item['name']); ?> x <?php echo $item['qty']; ?></span>
-                <span><?php echo formatPrice($item['price'] * $item['qty']); ?></span>
-            </div>
-        <?php endforeach; ?>
-
-        <div class="summary-item">
-            <span>Subtotal</span>
-            <span id="subtotal-display"><?php echo formatPrice($subtotal); ?></span>
+        <!-- Cart Items -->
+        <div class="cart-items-list">
+            <?php foreach ($cart_items as $item): ?>
+                <div class="cart-item-row">
+                    <div class="cart-item-name">
+                        <?= htmlspecialchars($item['name']) ?>
+                        <?php if ($item['size'] || $item['color']): ?>
+                            <small style="display: block; font-size: 13px; opacity: 0.8;">
+                                <?= $item['size'] ? 'Size: ' . $item['size'] : '' ?>
+                                <?= $item['color'] ? ' Color: ' . $item['color'] : '' ?>
+                            </small>
+                        <?php endif; ?>
+                        <small style="display: block; font-size: 13px; opacity: 0.8;">
+                            Qty: <?= $item['qty'] ?>
+                        </small>
+                    </div>
+                    <div class="cart-item-price">Rp <?= number_format($item['price'] * $item['qty'], 0, ',', '.') ?></div>
+                </div>
+            <?php endforeach; ?>
         </div>
-        <div class="summary-item">
-            <span>Shipping</span>
-            <span id="shipping-cost">-</span>
+
+        <!-- Summary Lines -->
+        <div class="summary-line">
+            <span class="summary-line-label">Subtotal</span>
+            <span class="summary-line-value" id="summary-subtotal">Rp <?= number_format($subtotal, 0, ',', '.') ?></span>
+        </div>
+
+        <div class="summary-line" id="summary-shipping-row" style="display: none;">
+            <span class="summary-line-label">Shipping</span>
+            <span class="summary-line-value" id="summary-shipping">Rp 0</span>
         </div>
 
         <!-- Voucher Section -->
-        <div class="voucher-section">
-            <button type="button" class="btn-voucher" onclick="openVoucherModal()">
-                🎟️ <span>Apply Voucher</span>
+        <div class="voucher-section-summary">
+            <button type="button" class="btn-open-voucher" onclick="openVoucherModal()">
+                🎟️ Apply Vouchers
             </button>
             <div id="applied-vouchers-container"></div>
         </div>
 
-        <div class="summary-item" id="discount-row" style="display: none; color: #10B981;">
-            <span>💰 Voucher Discount</span>
-            <span id="discount-amount">-</span>
-        </div>
-        <div class="summary-item" id="free-shipping-row" style="display: none; color: #10B981;">
-            <span>🚚 Free Shipping</span>
-            <span id="free-shipping-amount">-</span>
+        <div class="summary-line" id="summary-discount-row" style="display: none;">
+            <span class="summary-line-label">Discount</span>
+            <span class="summary-line-value" id="summary-discount" style="color: #10B981;">- Rp 0</span>
         </div>
 
+        <div class="summary-line" id="summary-freeship-row" style="display: none;">
+            <span class="summary-line-label">Free Shipping</span>
+            <span class="summary-line-value" id="summary-freeship" style="color: #10B981;">- Rp 0</span>
+        </div>
+
+        <!-- Total -->
         <div class="summary-total">
             <span>Total</span>
-            <span id="total"><?php echo formatPrice($subtotal); ?></span>
+            <span id="summary-total">Rp <?= number_format($subtotal, 0, ',', '.') ?></span>
         </div>
+
+        <!-- Place Order Button -->
+        <button type="button" class="btn-place-order" id="btn-checkout" onclick="processCheckout()" disabled>
+            🛒 Place Order
+        </button>
     </div>
+
 </div>
 
-<!-- VOUCHER MODAL 💎 -->
-<div class="voucher-modal" id="voucherModal">
+<!-- VOUCHER MODAL -->
+<div class="voucher-modal" id="voucher-modal">
     <div class="voucher-modal-content">
         <div class="voucher-modal-header">
-            <span class="close-modal" onclick="closeVoucherModal()">&times;</span>
+            <span class="close-modal" onclick="closeVoucherModal()">×</span>
             <h2>🎟️ Select Your Vouchers</h2>
-            <p style="margin-bottom: 8px;">Choose up to 2 vouchers: <strong>1 Free Shipping + 1 Discount</strong></p>
-            <div style="background: #FEF3C7; padding: 12px 16px; border-radius: 8px; border: 1px solid #FDE68A; margin-top: 8px;">
-                <p style="font-size: 13px; color: #92400E; margin: 0;">
-                    ⚠️ <strong>Note:</strong> Anda tidak dapat menggunakan 2 voucher diskon sekaligus. Pilih 1 Free Shipping + 1 Discount untuk benefit maksimal!
-                </p>
-            </div>
+            <p>Choose up to 2 vouchers: 1 Free Shipping + 1 Discount</p>
         </div>
-
+        
         <div class="voucher-modal-body">
-            <div class="voucher-type-section" id="free-shipping-section">
-                <div class="voucher-type-title">
-                    <span>🚚</span> Free Shipping Vouchers
-                </div>
-                <div class="voucher-grid" id="free-shipping-vouchers">
-                    <p style="color: #6B7280; text-align: center; padding: 40px;">Loading vouchers...</p>
+            <!-- Free Shipping Vouchers -->
+            <div class="voucher-type-section">
+                <h3 class="voucher-type-title">🚚 Free Shipping Vouchers</h3>
+                <div class="vouchers-grid" id="free-shipping-vouchers">
+                    <p style="text-align: center; color: #6B7280; padding: 40px;">Loading vouchers...</p>
                 </div>
             </div>
 
-            <div class="voucher-type-section" id="discount-section">
-                <div class="voucher-type-title">
-                    <span>💰</span> Discount Vouchers
-                </div>
-                <div class="voucher-grid" id="discount-vouchers">
-                    <p style="color: #6B7280; text-align: center; padding: 40px;">Loading vouchers...</p>
+            <!-- Discount Vouchers -->
+            <div class="voucher-type-section">
+                <h3 class="voucher-type-title">💰 Discount Vouchers</h3>
+                <div class="vouchers-grid" id="discount-vouchers">
+                    <p style="text-align: center; color: #6B7280; padding: 40px;">Loading vouchers...</p>
                 </div>
             </div>
         </div>
 
-        <div class="modal-footer">
-            <div style="color: #6B7280; font-size: 14px;">
-                Selected: <strong id="selected-count">0</strong> / 2 vouchers
-            </div>
-            <button type="button" class="btn-apply-vouchers" onclick="applySelectedVouchers()">
-                ✨ Apply Vouchers
-            </button>
+        <div class="voucher-modal-footer">
+            <div class="selected-count">Selected: <strong id="selected-count">0</strong> / 2</div>
+            <button class="btn-apply-vouchers" onclick="applySelectedVouchers()">Apply Vouchers</button>
         </div>
     </div>
 </div>
 
+<!-- Midtrans Snap Script -->
+<?php if ($payment_settings && $payment_settings['midtrans_enabled']): ?>
+<script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="<?= MIDTRANS_CLIENT_KEY ?>"></script>
+<?php endif; ?>
+
 <script>
-// Global state
-const selectedVouchers = {
-    free_shipping: null,
-    discount: null
-};
-let availableVouchers = {
-    free_shipping: [],
-    discount: []
-};
-const subtotal = <?php echo $subtotal; ?>;
-let currentShipping = 0;
-let shippingRates = [];
+// ================================================================
+// ULTIMATE CHECKOUT JAVASCRIPT - FULLY FUNCTIONAL
+// ================================================================
 
-// Prepare cart items for Biteship
-const cartItems = <?php echo json_encode(array_map(function($item) {
-    return [
-        'name' => $item['name'],
-        'value' => $item['price'],
-        'quantity' => $item['qty'],
-        'weight' => 500,
-        'length' => 20,
-        'width' => 15,
-        'height' => 5
-    ];
-}, $cart_items)); ?>;
+const subtotal = <?= $subtotal ?>;
+let availableVouchers = { free_shipping: [], discount: [] };
+let selectedVouchers = { free_shipping: null, discount: null };
+let currentShippingCost = 0;
 
-// Address selection handler
-document.getElementById('savedAddressSelect')?.addEventListener('change', function() {
-    const selectedOption = this.options[this.selectedIndex];
-
-    if (this.value) {
-        // Fix: Use correct data attribute names
-        document.getElementById('recipientName').value = selectedOption.dataset.recipientName || '';
-        document.getElementById('recipientPhone').value = selectedOption.dataset.phone || '';
-        document.getElementById('recipientAddress').value = selectedOption.dataset.address || '';
-        document.getElementById('latitude').value = selectedOption.dataset.latitude || '';
-        document.getElementById('longitude').value = selectedOption.dataset.longitude || '';
-
-        // Auto-trigger shipping calculation
-        if (selectedOption.dataset.latitude && selectedOption.dataset.longitude) {
-            console.log('Address selected, calculating shipping...');
-            fetchShippingRates(selectedOption.dataset.latitude, selectedOption.dataset.longitude);
-        } else {
-            console.warn('Address missing coordinates');
-        }
-    } else {
-        // Clear fields if deselected
-        document.getElementById('recipientName').value = '';
-        document.getElementById('recipientPhone').value = '';
-        document.getElementById('recipientAddress').value = '';
-        document.getElementById('latitude').value = '';
-        document.getElementById('longitude').value = '';
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-load default address if exists
+    const savedAddressSelect = document.getElementById('saved-address-select');
+    if (savedAddressSelect && savedAddressSelect.value) {
+        savedAddressSelect.dispatchEvent(new Event('change'));
     }
 });
 
-// Auto-load if default address exists
-window.addEventListener('DOMContentLoaded', function() {
-    const select = document.getElementById('savedAddressSelect');
-    if (select && select.value) {
-        select.dispatchEvent(new Event('change'));
+// ===== ADDRESS SELECTION =====
+document.getElementById('saved-address-select')?.addEventListener('change', function() {
+    const option = this.options[this.selectedIndex];
+    if (!option.value) return;
+
+    document.getElementById('recipient-name').value = option.dataset.name || '';
+    document.getElementById('phone').value = option.dataset.phone || '';
+    document.getElementById('address').value = option.dataset.address || '';
+    document.getElementById('latitude').value = option.dataset.lat || '';
+    document.getElementById('longitude').value = option.dataset.lng || '';
+
+    if (option.dataset.lat && option.dataset.lng) {
+        fetchShippingRates(option.dataset.lat, option.dataset.lng);
     }
 });
 
-// Fetch shipping rates from Biteship
+// ===== SHIPPING CALCULATION =====
 function fetchShippingRates(lat, lng) {
-    const container = document.getElementById('shippingRatesContainer');
-    container.innerHTML = `
-        <div class="shipping-rates-loading">
-            <div class="spinner"></div>
-            <p>Calculating shipping rates...</p>
-        </div>
-    `;
+    const container = document.getElementById('shipping-rates-container');
+    container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Loading shipping options...</p></div>';
 
-    document.getElementById('checkoutButton').disabled = true;
+    const cartItems = <?= json_encode($cart_items) ?>;
 
     fetch('/api/shipping/calculate-rates.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            latitude: lat,
-            longitude: lng,
-            items: cartItems
-        })
+        body: JSON.stringify({ latitude: lat, longitude: lng, items: cartItems })
     })
     .then(r => r.json())
     .then(data => {
         if (data.success && data.rates && data.rates.length > 0) {
-            shippingRates = data.rates;
             renderShippingRates(data.rates);
         } else {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #EF4444;">
-                    <p style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">❌ No Shipping Available</p>
-                    <p style="font-size: 14px; color: #6B7280;">${data.message || 'No couriers available for this area'}</p>
-                </div>
-            `;
+            container.innerHTML = '<p style="color: #EF4444; text-align: center; padding: 40px;">⚠️ No shipping options available for this address</p>';
         }
     })
-    .catch(err => {
-        console.error('Shipping calculation error:', err);
-        container.innerHTML = `
-            <div style="text-align: center; padding: 40px; color: #EF4444;">
-                <p style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">❌ Error</p>
-                <p style="font-size: 14px; color: #6B7280;">Failed to calculate shipping rates. Please try again.</p>
-            </div>
-        `;
+    .catch(e => {
+        container.innerHTML = '<p style="color: #EF4444; text-align: center; padding: 40px;">❌ Error loading shipping options</p>';
+        console.error('Shipping error:', e);
     });
 }
 
-// Render shipping rates
 function renderShippingRates(rates) {
-    const container = document.getElementById('shippingRatesContainer');
-
-    container.innerHTML = rates.map((rate, index) => `
-        <div class="shipping-method" data-rate-id="${rate.rate_id || index}">
-            <input type="radio"
-                   name="shipping_rate"
-                   value="${rate.rate_id || index}"
-                   data-price="${rate.price}"
-                   data-courier="${rate.courier_company}"
-                   data-service="${rate.courier_service_name}"
-                   ${index === 0 ? 'checked' : ''}>
-            <div style="flex: 1;">
-                <strong>${rate.courier_name || rate.courier_company} - ${rate.courier_service_name}</strong>
-                <div style="font-size: 13px; color: #6B7280;">
-                    ${rate.description || ''} ${rate.duration ? '• ' + rate.duration : ''} - ${formatPrice(rate.price)}
-                </div>
+    const container = document.getElementById('shipping-rates-container');
+    container.innerHTML = rates.map((rate, idx) => `
+        <div class="option-card" onclick="selectShipping(${rate.price}, '${rate.courier_code}', '${rate.courier_service_name}', this)">
+            <input type="radio" name="shipping_method" value="${idx}" id="shipping-${idx}">
+            <div class="option-card-content">
+                <div class="option-card-name">${rate.courier_name} - ${rate.courier_service_name}</div>
+                <div class="option-card-desc">${rate.description || ''} • ${rate.duration || 'N/A'}</div>
             </div>
+            <div class="option-card-price">Rp ${formatNumber(rate.price)}</div>
         </div>
     `).join('');
-
-    // Add event listeners to shipping methods
-    document.querySelectorAll('.shipping-method').forEach(method => {
-        method.addEventListener('click', function() {
-            document.querySelectorAll('.shipping-method').forEach(m => m.classList.remove('selected'));
-            this.classList.add('selected');
-            const radio = this.querySelector('input[type="radio"]');
-            radio.checked = true;
-
-            currentShipping = parseFloat(radio.dataset.price) || 0;
-            document.getElementById('shipping-cost').textContent = formatPrice(currentShipping);
-            document.getElementById('shipping_cost_input').value = currentShipping;
-            document.getElementById('courier_code_input').value = radio.dataset.courier;
-            document.getElementById('courier_service_input').value = radio.dataset.service;
-
-            recalculateTotal();
-            document.getElementById('checkoutButton').disabled = false;
-        });
-    });
-
-    // Trigger first rate selection
-    if (rates.length > 0) {
-        document.querySelector('.shipping-method')?.click();
-    }
 }
 
-// Open modal and load vouchers
+function selectShipping(price, code, service, element) {
+    // Remove selected from all
+    document.querySelectorAll('#shipping-rates-container .option-card').forEach(el => el.classList.remove('selected'));
+    
+    // Add selected to clicked
+    element.classList.add('selected');
+    element.querySelector('input[type="radio"]').checked = true;
+
+    // Update values
+    currentShippingCost = price;
+    document.getElementById('shipping-cost-input').value = price;
+    document.getElementById('courier-code-input').value = code;
+    document.getElementById('courier-service-input').value = service;
+
+    // Update display
+    document.getElementById('summary-shipping').textContent = 'Rp ' + formatNumber(price);
+    document.getElementById('summary-shipping-row').style.display = 'flex';
+
+    // Recalculate
+    recalculateTotal();
+
+    // Enable checkout button
+    document.getElementById('btn-checkout').disabled = false;
+}
+
+// ===== PAYMENT METHOD SELECTION =====
+function selectPaymentMethod(method, element) {
+    if (element.classList.contains('disabled')) return;
+
+    document.querySelectorAll('.form-section-box:last-of-type .option-card').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+    element.querySelector('input[type="radio"]').checked = true;
+}
+
+// ===== VOUCHER FUNCTIONS =====
 function openVoucherModal() {
-    document.getElementById('voucherModal').classList.add('show');
+    document.getElementById('voucher-modal').classList.add('show');
     loadAvailableVouchers();
 }
 
 function closeVoucherModal() {
-    document.getElementById('voucherModal').classList.remove('show');
+    document.getElementById('voucher-modal').classList.remove('show');
 }
 
-// Load vouchers from API
 function loadAvailableVouchers() {
     fetch(`/api/vouchers/get-available.php?cart_total=${subtotal}`)
         .then(r => r.json())
@@ -807,58 +1403,42 @@ function loadAvailableVouchers() {
 }
 
 function renderVouchers() {
-    // Render free shipping vouchers
-    const freeShippingContainer = document.getElementById('free-shipping-vouchers');
+    // Free Shipping
+    const fsContainer = document.getElementById('free-shipping-vouchers');
     if (availableVouchers.free_shipping.length === 0) {
-        freeShippingContainer.innerHTML = '<p style="color: #6B7280; text-align: center; padding: 40px;">No free shipping vouchers available</p>';
+        fsContainer.innerHTML = '<p style="color: #6B7280; text-align: center; padding: 40px;">No free shipping vouchers available</p>';
     } else {
-        freeShippingContainer.innerHTML = availableVouchers.free_shipping.map(v => `
+        fsContainer.innerHTML = availableVouchers.free_shipping.map(v => `
             <div class="voucher-card-mini ${selectedVouchers.free_shipping?.id === v.id ? 'selected' : ''}"
-                 onclick="selectVoucher('free_shipping', ${JSON.stringify(v).replace(/"/g, '&quot;')})">
-                <div class="voucher-card-header-mini free-shipping">
-                    <div class="voucher-code-mini">${v.code}</div>
-                    <div class="voucher-name-mini">${v.name}</div>
-                </div>
-                <div class="voucher-card-body-mini">
-                    <div class="voucher-value-mini">
-                        FREE SHIPPING
-                        ${v.discount_value ? `<span style="font-size: 14px; color: #6B7280;">(Max: Rp ${formatNumber(v.discount_value)})</span>` : ''}
-                    </div>
-                    ${v.min_purchase ? `<div class="voucher-condition-mini">📦 Min: Rp ${formatNumber(v.min_purchase)}</div>` : ''}
-                    <div class="voucher-condition-mini">🔢 ${v.max_usage - v.usage_count} uses left</div>
-                    <div class="voucher-condition-mini">📅 Valid until ${new Date(v.valid_until).toLocaleDateString('id-ID')}</div>
-                </div>
+                 onclick='selectVoucher("free_shipping", ${JSON.stringify(v).replace(/'/g, "&#39;")})'>
+                <div class="voucher-code-mini">${v.code}</div>
+                <div class="voucher-name-mini">${v.name}</div>
+                <div class="voucher-value-mini">FREE SHIPPING</div>
+                ${v.discount_value ? `<div class="voucher-condition-mini">Max: Rp ${formatNumber(v.discount_value)}</div>` : ''}
+                ${v.min_purchase ? `<div class="voucher-condition-mini">📦 Min: Rp ${formatNumber(v.min_purchase)}</div>` : ''}
+                <div class="voucher-condition-mini">🔢 ${v.max_usage - v.usage_count} uses left</div>
             </div>
         `).join('');
     }
 
-    // Render discount vouchers
-    const discountContainer = document.getElementById('discount-vouchers');
+    // Discount
+    const dcContainer = document.getElementById('discount-vouchers');
     if (availableVouchers.discount.length === 0) {
-        discountContainer.innerHTML = '<p style="color: #6B7280; text-align: center; padding: 40px;">No discount vouchers available</p>';
+        dcContainer.innerHTML = '<p style="color: #6B7280; text-align: center; padding: 40px;">No discount vouchers available</p>';
     } else {
-        discountContainer.innerHTML = availableVouchers.discount.map(v => {
-            let valueText = '';
-            if (v.discount_type === 'percentage') {
-                valueText = `${v.discount_value}% OFF`;
-                if (v.max_discount) valueText += ` <span style="font-size: 14px; color: #6B7280;">(Max: Rp ${formatNumber(v.max_discount)})</span>`;
-            } else {
-                valueText = `Rp ${formatNumber(v.discount_value)} OFF`;
-            }
-
+        dcContainer.innerHTML = availableVouchers.discount.map(v => {
+            let valueText = v.discount_type === 'percentage' 
+                ? `${v.discount_value}% OFF` 
+                : `Rp ${formatNumber(v.discount_value)} OFF`;
+            
             return `
                 <div class="voucher-card-mini ${selectedVouchers.discount?.id === v.id ? 'selected' : ''}"
-                     onclick="selectVoucher('discount', ${JSON.stringify(v).replace(/"/g, '&quot;')})">
-                    <div class="voucher-card-header-mini">
-                        <div class="voucher-code-mini">${v.code}</div>
-                        <div class="voucher-name-mini">${v.name}</div>
-                    </div>
-                    <div class="voucher-card-body-mini">
-                        <div class="voucher-value-mini">${valueText}</div>
-                        ${v.min_purchase ? `<div class="voucher-condition-mini">📦 Min: Rp ${formatNumber(v.min_purchase)}</div>` : ''}
-                        <div class="voucher-condition-mini">🔢 ${v.max_usage - v.usage_count} uses left</div>
-                        <div class="voucher-condition-mini">📅 Valid until ${new Date(v.valid_until).toLocaleDateString('id-ID')}</div>
-                    </div>
+                     onclick='selectVoucher("discount", ${JSON.stringify(v).replace(/'/g, "&#39;")})'>
+                    <div class="voucher-code-mini">${v.code}</div>
+                    <div class="voucher-name-mini">${v.name}</div>
+                    <div class="voucher-value-mini">${valueText}</div>
+                    ${v.min_purchase ? `<div class="voucher-condition-mini">📦 Min: Rp ${formatNumber(v.min_purchase)}</div>` : ''}
+                    <div class="voucher-condition-mini">🔢 ${v.max_usage - v.usage_count} uses left</div>
                 </div>
             `;
         }).join('');
@@ -871,7 +1451,6 @@ function selectVoucher(type, voucher) {
     } else {
         selectedVouchers[type] = voucher;
     }
-
     renderVouchers();
     updateSelectedCount();
 }
@@ -892,7 +1471,7 @@ function applySelectedVouchers() {
                     <span class="code">${selectedVouchers.free_shipping.code}</span>
                     <div style="font-size: 11px; opacity: 0.8;">Free Shipping</div>
                 </div>
-                <span class="remove-voucher" onclick="removeVoucher('free_shipping')">✕</span>
+                <span class="remove-voucher" onclick='removeVoucher("free_shipping")'>✕</span>
             </div>
         `;
     }
@@ -902,9 +1481,9 @@ function applySelectedVouchers() {
             <div class="applied-voucher">
                 <div>
                     <span class="code">${selectedVouchers.discount.code}</span>
-                    <div style="font-size: 11px; opacity: 0.8;">Discount</div>
+                    <div style="font-size: 11px; opacity: 0.8;">Discount Voucher</div>
                 </div>
-                <span class="remove-voucher" onclick="removeVoucher('discount')">✕</span>
+                <span class="remove-voucher" onclick='removeVoucher("discount")'>✕</span>
             </div>
         `;
     }
@@ -918,18 +1497,19 @@ function removeVoucher(type) {
     applySelectedVouchers();
 }
 
+// ===== TOTAL CALCULATION =====
 function recalculateTotal() {
-    let total = subtotal + currentShipping;
+    let total = subtotal + currentShippingCost;
     let discountAmount = 0;
     let freeShippingAmount = 0;
 
-    // Apply discount voucher
+    // Calculate discount
     if (selectedVouchers.discount) {
         const v = selectedVouchers.discount;
         if (v.discount_type === 'percentage') {
-            discountAmount = (subtotal * v.discount_value) / 100;
-            if (v.max_discount && discountAmount > v.max_discount) {
-                discountAmount = v.max_discount;
+            discountAmount = subtotal * (v.discount_value / 100);
+            if (v.max_discount) {
+                discountAmount = Math.min(discountAmount, v.max_discount);
             }
         } else {
             discountAmount = v.discount_value;
@@ -937,280 +1517,162 @@ function recalculateTotal() {
         total -= discountAmount;
     }
 
-    // Apply free shipping voucher
+    // Calculate free shipping
     if (selectedVouchers.free_shipping) {
-        freeShippingAmount = currentShipping;
-        if (selectedVouchers.free_shipping.discount_value && freeShippingAmount > selectedVouchers.free_shipping.discount_value) {
-            freeShippingAmount = selectedVouchers.free_shipping.discount_value;
+        const v = selectedVouchers.free_shipping;
+        freeShippingAmount = currentShippingCost;
+        if (v.discount_value) {
+            freeShippingAmount = Math.min(freeShippingAmount, v.discount_value);
         }
         total -= freeShippingAmount;
     }
 
     // Update display
     if (discountAmount > 0) {
-        document.getElementById('discount-row').style.display = 'flex';
-        document.getElementById('discount-amount').textContent = '- ' + formatPrice(discountAmount);
+        document.getElementById('summary-discount').textContent = '- Rp ' + formatNumber(discountAmount);
+        document.getElementById('summary-discount-row').style.display = 'flex';
     } else {
-        document.getElementById('discount-row').style.display = 'none';
+        document.getElementById('summary-discount-row').style.display = 'none';
     }
 
     if (freeShippingAmount > 0) {
-        document.getElementById('free-shipping-row').style.display = 'flex';
-        document.getElementById('free-shipping-amount').textContent = '- ' + formatPrice(freeShippingAmount);
+        document.getElementById('summary-freeship').textContent = '- Rp ' + formatNumber(freeShippingAmount);
+        document.getElementById('summary-freeship-row').style.display = 'flex';
     } else {
-        document.getElementById('free-shipping-row').style.display = 'none';
+        document.getElementById('summary-freeship-row').style.display = 'none';
     }
 
-    document.getElementById('total').textContent = formatPrice(Math.max(0, total));
+    document.getElementById('summary-total').textContent = 'Rp ' + formatNumber(Math.max(0, total));
 
-    // Update hidden form fields
-    document.getElementById('voucher_discount_input').value = discountAmount;
-    document.getElementById('voucher_free_shipping_input').value = freeShippingAmount > 0 ? 1 : 0;
-    const codes = [selectedVouchers.free_shipping?.code, selectedVouchers.discount?.code].filter(Boolean).join(',');
-    document.getElementById('voucher_codes_input').value = codes;
+    // Update hidden inputs
+    document.getElementById('voucher-discount-input').value = discountAmount;
+    document.getElementById('voucher-free-shipping-input').value = freeShippingAmount;
+    
+    const voucherCodes = [
+        selectedVouchers.free_shipping?.code,
+        selectedVouchers.discount?.code
+    ].filter(Boolean).join(',');
+    document.getElementById('voucher-codes-input').value = voucherCodes;
 }
 
-// Payment method selection visual
-document.querySelectorAll('.payment-method').forEach(method => {
-    method.addEventListener('click', function() {
-        if (this.querySelector('input[type="radio"]:disabled')) return;
-
-        document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
-        this.classList.add('selected');
-        this.querySelector('input[type="radio"]').checked = true;
-    });
-});
-
-function formatPrice(amount) {
-    return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(amount));
-}
-
-function formatNumber(num) {
-    return new Intl.NumberFormat('id-ID').format(num);
-}
-
-// Close modal on outside click
-document.getElementById('voucherModal').addEventListener('click', function(e) {
-    if (e.target === this) closeVoucherModal();
-});
-
-// Process Checkout
+// ===== CHECKOUT PROCESSING =====
 function processCheckout() {
-    const form = document.getElementById('checkoutForm');
-    const paymentMethod = form.querySelector('input[name="payment_method"]:checked');
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
+    const shippingMethod = document.querySelector('input[name="shipping_method"]:checked');
 
     if (!paymentMethod) {
         alert('Please select a payment method');
         return;
     }
 
-    // Validate shipping method
-    if (!form.querySelector('input[name="shipping_rate"]:checked')) {
+    if (!shippingMethod) {
         alert('Please select a shipping method');
         return;
     }
 
-    // Get final total
-    const finalTotal = parseFloat(document.getElementById('total').textContent.replace(/[^\d]/g, ''));
-
-    // Check wallet balance if wallet payment
+    // Check wallet balance
     if (paymentMethod.value === 'wallet') {
-        const walletBalance = <?= $walletBalance ?>;
-        if (walletBalance < finalTotal) {
-            if (confirm('Insufficient wallet balance. Would you like to top up?')) {
-                window.location.href = '/member/wallet.php';
-            }
+        const walletBalance = <?= $user['wallet_balance'] ?>;
+        const total = parseFloat(document.getElementById('summary-total').textContent.replace(/[^\d]/g, ''));
+        if (walletBalance < total) {
+            alert('Insufficient wallet balance');
             return;
         }
     }
 
-    // Show loading
-    const btn = document.getElementById('checkoutButton');
-    const originalText = btn.innerHTML;
+    // Disable button
+    const btn = document.getElementById('btn-checkout');
     btn.disabled = true;
-    btn.innerHTML = '⏳ Processing...';
+    btn.textContent = 'Processing...';
 
-    // Prepare form data
-    const formData = new FormData(form);
+    // Get form data
+    const formData = new FormData(document.getElementById('checkout-form'));
 
-    // Submit to API
+    // Send to API
     fetch('/api/orders/create.php', {
         method: 'POST',
         body: formData
     })
     .then(r => r.json())
     .then(data => {
-        if (!data.success) {
-            throw new Error(data.error || 'Failed to create order');
-        }
-
-        // Handle based on payment method
-        if (paymentMethod.value === 'wallet') {
-            alert('✅ Order placed successfully! Your order is being processed.');
-            window.location.href = '/member/orders.php';
-
-        } else if (paymentMethod.value === 'midtrans') {
-            if (!data.snap_token) {
-                throw new Error('Snap token not found');
+        if (data.success) {
+            if (paymentMethod.value === 'wallet') {
+                alert('Order placed successfully!');
+                window.location.href = '/member/orders.php';
+            } else if (paymentMethod.value === 'midtrans' && data.snap_token) {
+                snap.pay(data.snap_token, {
+                    onSuccess: () => { window.location.href = '/member/orders.php?success=1'; },
+                    onPending: () => { window.location.href = '/member/orders.php?pending=1'; },
+                    onError: () => { alert('Payment failed'); btn.disabled = false; btn.textContent = '🛒 PLACE ORDER'; },
+                    onClose: () => { btn.disabled = false; btn.textContent = '🛒 PLACE ORDER'; }
+                });
+            } else if (paymentMethod.value === 'bank_transfer') {
+                showBankTransferModal(data);
             }
-
-            window.snap.pay(data.snap_token, {
-                onSuccess: function(result) {
-                    alert('✅ Payment successful! Your order is being processed.');
-                    window.location.href = '/member/orders.php';
-                },
-                onPending: function(result) {
-                    alert('⏳ Payment pending. Please complete your payment.');
-                    window.location.href = '/member/orders.php';
-                },
-                onError: function(result) {
-                    alert('❌ Payment failed. Please try again.');
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                },
-                onClose: function() {
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                }
-            });
-
-        } else if (paymentMethod.value === 'bank_transfer') {
-            showBankTransferModal(data);
+        } else {
+            alert('Error: ' + (data.message || 'Unknown error'));
+            btn.disabled = false;
+            btn.textContent = '🛒 PLACE ORDER';
         }
     })
-    .catch(error => {
-        alert('Error: ' + error.message);
+    .catch(e => {
+        alert('Error processing order');
+        console.error(e);
         btn.disabled = false;
-        btn.innerHTML = originalText;
+        btn.textContent = '🛒 PLACE ORDER';
     });
 }
 
-// Show Bank Transfer Modal
+// ===== BANK TRANSFER MODAL =====
 function showBankTransferModal(data) {
-    const modal = document.createElement('div');
-    modal.className = 'bank-transfer-modal';
-    modal.innerHTML = `
-        <div class="bank-modal-content">
-            <h2>🏦 Transfer Instructions</h2>
-            <div class="bank-info">
-                <p>Please transfer <strong class="amount">Rp ${formatNumber(data.total_with_code)}</strong></p>
-                <p class="unique-code-info">Including unique code: <strong>${data.unique_code}</strong></p>
-                <p style="color: #EF4444; margin-top: 12px;">⏰ Complete within 1 hour</p>
-            </div>
-
-            <div class="bank-list" id="bankList">
-                <p style="text-align: center; color: #6B7280;">Loading banks...</p>
-            </div>
-
-            <div style="margin-top: 24px; text-align: center;">
-                <a href="https://wa.me/6281377378859?text=Halo%20Admin,%20saya%20sudah%20transfer%20untuk%20order%20${data.order_number}"
-                   target="_blank" class="btn-whatsapp">
-                    📱 Contact Admin via WhatsApp
-                </a>
-            </div>
-
-            <button onclick="closeBankModal()" class="btn-close-bank">Got It</button>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    modal.style.display = 'flex';
-
-    // Load available banks
     fetch('/api/payment/get-banks.php')
         .then(r => r.json())
-        .then(banks => {
-            const bankList = document.getElementById('bankList');
-            if (banks.length === 0) {
-                bankList.innerHTML = '<p style="color: #6B7280;">No banks available</p>';
-                return;
-            }
-
-            bankList.innerHTML = banks.map(bank => `
-                <div class="bank-item">
-                    <div class="bank-name">${bank.bank_name}</div>
-                    <div class="bank-account">${bank.account_number}</div>
-                    <div class="bank-holder">${bank.account_name}</div>
+        .then(bankData => {
+            const modal = document.createElement('div');
+            modal.className = 'bank-modal show';
+            modal.innerHTML = `
+                <div class="bank-modal-content">
+                    <div class="bank-modal-header">
+                        <h2>💳 Bank Transfer</h2>
+                        <p>Complete your payment</p>
+                    </div>
+                    <div class="bank-modal-body">
+                        <div class="transfer-amount-display">
+                            <div class="transfer-amount-label">Total Amount</div>
+                            <div class="transfer-amount-value">Rp ${formatNumber(data.total_amount)}</div>
+                        </div>
+                        <div class="bank-list">
+                            <h3>Transfer to:</h3>
+                            ${bankData.banks ? bankData.banks.map(b => `
+                                <div class="bank-item">
+                                    <div class="bank-name">${b.bank_name}</div>
+                                    <div class="bank-details">${b.account_name}</div>
+                                    <div class="bank-account-number">${b.account_number}</div>
+                                </div>
+                            `).join('') : '<p>No banks available</p>'}
+                        </div>
+                        <button class="btn-understood" onclick="document.querySelector('.bank-modal').remove(); window.location.href='/member/orders.php'">
+                            Got It!
+                        </button>
+                    </div>
                 </div>
-            `).join('');
+            `;
+            document.body.appendChild(modal);
         });
 }
 
-function closeBankModal() {
-    document.querySelector('.bank-transfer-modal').remove();
-    window.location.href = '/member/orders.php';
+// ===== UTILITY FUNCTIONS =====
+function formatNumber(num) {
+    return new Intl.NumberFormat('id-ID').format(num);
+}
+
+// Close modal on outside click
+window.onclick = function(event) {
+    const voucherModal = document.getElementById('voucher-modal');
+    if (event.target === voucherModal) {
+        closeVoucherModal();
+    }
 }
 </script>
-
-<!-- Load Midtrans Snap.js -->
-<?php
-require_once __DIR__ . '/../includes/MidtransHelper.php';
-$midtrans = new MidtransHelper($pdo);
-?>
-<script src="<?= $midtrans->getSnapJsUrl() ?>" data-client-key="<?= $midtrans->getClientKey() ?>"></script>
-
-<style>
-.bank-transfer-modal {
-    display: none; position: fixed; z-index: 10000;
-    left: 0; top: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
-    justify-content: center; align-items: center;
-}
-.bank-modal-content {
-    background: white; border-radius: 20px;
-    max-width: 600px; width: 90%; padding: 40px;
-    animation: slideUp 0.4s;
-}
-.bank-modal-content h2 {
-    font-size: 28px; font-weight: 700; margin-bottom: 24px;
-    text-align: center;
-}
-.bank-info {
-    background: #F3F4F6; padding: 24px; border-radius: 12px;
-    text-align: center; margin-bottom: 24px;
-}
-.bank-info .amount {
-    font-size: 32px; color: #667EEA; display: block; margin: 12px 0;
-}
-.unique-code-info {
-    color: #6B7280; font-size: 14px; margin-top: 8px;
-}
-.bank-list {
-    max-height: 300px; overflow-y: auto;
-}
-.bank-item {
-    padding: 16px; border: 2px solid #E5E7EB; border-radius: 12px;
-    margin-bottom: 12px; transition: all 0.3s;
-}
-.bank-item:hover {
-    border-color: #667EEA; background: #F9FAFB;
-}
-.bank-name {
-    font-weight: 700; font-size: 16px; margin-bottom: 4px;
-}
-.bank-account {
-    font-family: 'Courier New', monospace; font-size: 18px;
-    color: #667EEA; font-weight: 700; margin: 8px 0;
-}
-.bank-holder {
-    color: #6B7280; font-size: 14px;
-}
-.btn-whatsapp {
-    display: inline-block; padding: 14px 28px;
-    background: #25D366; color: white; text-decoration: none;
-    border-radius: 10px; font-weight: 600;
-    transition: all 0.3s;
-}
-.btn-whatsapp:hover {
-    background: #128C7E; transform: translateY(-2px);
-}
-.btn-close-bank {
-    width: 100%; padding: 16px; margin-top: 24px;
-    background: #1A1A1A; color: white; border: none;
-    border-radius: 10px; font-weight: 600; cursor: pointer;
-}
-</style>
-
-<!-- Checkout Fixes JavaScript -->
-<script src="/includes/checkout-fixes.js"></script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
