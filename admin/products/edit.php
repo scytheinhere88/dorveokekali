@@ -149,313 +149,104 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_title = 'Edit Produk - Admin';
+include __DIR__ . '/../includes/admin-header.php';
 ?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $page_title; ?></title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #F8F9FA;
-            color: #1A1A1A;
-        }
+<style>
+.form-container {
+    background: white;
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 24px;
+}
 
-        .admin-layout {
-            display: grid;
-            grid-template-columns: 260px 1fr;
-            min-height: 100vh;
-        }
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #E8E8E8;
+}
 
-        .admin-sidebar {
-            background: #1A1A1A;
-            color: white;
-            padding: 30px 0;
-            position: fixed;
-            width: 260px;
-            height: 100vh;
-            overflow-y: auto;
-        }
+.form-group {
+    margin-bottom: 24px;
+}
 
-        .admin-logo {
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: 3px;
-            padding: 0 30px 30px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #1A1A1A;
+}
 
-        .admin-nav {
-            padding: 20px 0;
-        }
+input[type="text"],
+input[type="number"],
+input[type="url"],
+select,
+textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #E8E8E8;
+    border-radius: 6px;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s;
+}
 
-        .nav-item {
-            padding: 12px 30px;
-            color: rgba(255,255,255,0.7);
-            text-decoration: none;
-            display: block;
-            transition: all 0.3s;
-        }
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #1A1A1A;
+}
 
-        .nav-item:hover, .nav-item.active {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
+textarea {
+    min-height: 120px;
+    resize: vertical;
+}
 
-        .admin-content {
-            margin-left: 260px;
-            padding: 40px;
-        }
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+}
 
-        .header h1 {
-            font-size: 32px;
-            font-weight: 600;
-        }
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
 
-        .form-container {
-            background: white;
-            border-radius: 12px;
-            padding: 40px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            margin-bottom: 24px;
-        }
+.button-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+}
 
-        .section-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 24px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #E8E8E8;
-        }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+}
 
-        .form-group {
-            margin-bottom: 24px;
-        }
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #E8E8E8;
+}
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #1A1A1A;
-        }
+th {
+    background: #F8F9FA;
+    font-weight: 600;
+}
+</style>
 
-        input[type="text"],
-        input[type="number"],
-        input[type="url"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #E8E8E8;
-            border-radius: 6px;
-            font-size: 15px;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #1A1A1A;
-        }
-
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: auto;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-size: 15px;
-            font-weight: 500;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s;
-            border: none;
-        }
-
-        .btn-primary {
-            background: #1A1A1A;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #000000;
-        }
-
-        .btn-secondary {
-            background: #E8E8E8;
-            color: #1A1A1A;
-        }
-
-        .btn-secondary:hover {
-            background: #D0D0D0;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
-        }
-
-        .btn-small {
-            padding: 8px 16px;
-            font-size: 13px;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 32px;
-        }
-
-        .alert {
-            padding: 16px;
-            border-radius: 6px;
-            margin-bottom: 24px;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-
-        .alert-error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
-
-        .image-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 16px;
-            margin-top: 16px;
-        }
-
-        .image-item {
-            position: relative;
-            aspect-ratio: 1;
-            border: 1px solid #E8E8E8;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .image-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .image-delete {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: rgba(220, 53, 69, 0.9);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 4px 8px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .variant-list {
-            margin-top: 16px;
-        }
-
-        .variant-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: #F8F9FA;
-            border-radius: 6px;
-            margin-bottom: 8px;
-        }
-
-        .variant-info {
-            display: flex;
-            gap: 16px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 16px;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #E8E8E8;
-        }
-
-        th {
-            background: #F8F9FA;
-            font-weight: 600;
-        }
-    </style>
-</head>
-<body>
-    <div class="admin-layout">
-        <aside class="admin-sidebar">
-            <div class="admin-logo">DORVE</div>
-            <nav class="admin-nav">
-                <a href="/admin/index.php" class="nav-item">Dashboard</a>
-                <a href="/admin/products/index.php" class="nav-item active">Produk</a>
-                <a href="/admin/categories/index.php" class="nav-item">Kategori</a>
-                <a href="/admin/orders/index.php" class="nav-item">Pesanan</a>
-                <a href="/admin/users/index.php" class="nav-item">Pengguna</a>
-                <a href="/admin/vouchers/index.php" class="nav-item">Voucher</a>
-                <a href="/admin/shipping/index.php" class="nav-item">Pengiriman</a>
-                <a href="/admin/pages/index.php" class="nav-item">Halaman CMS</a>
-                <a href="/admin/settings/index.php" class="nav-item">Pengaturan</a>
-                <a href="/auth/logout.php" class="nav-item">Logout</a>
-            </nav>
-        </aside>
-
-        <main class="admin-content">
-            <div class="header">
-                <h1>Edit Produk: <?php echo htmlspecialchars($product['name']); ?></h1>
-            </div>
+<div class="header">
+    <h1>Edit Produk: <?php echo htmlspecialchars($product['name']); ?></h1>
+</div>
 
             <?php if ($error): ?>
                 <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
@@ -677,7 +468,5 @@ $page_title = 'Edit Produk - Admin';
                     <p style="color: #6c757d; margin-top: 16px;">Belum ada varian. Tambahkan varian produk di atas.</p>
                 <?php endif; ?>
             </div>
-        </main>
-    </div>
-</body>
-</html>
+
+<?php include __DIR__ . '/../includes/admin-footer.php'; ?>
