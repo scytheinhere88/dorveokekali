@@ -12,7 +12,18 @@ RewriteBase /
 # RewriteCond %{HTTPS} off
 # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# Remove index.php from URLs
+# IMPORTANT: Exclude admin, api, pages, auth, member directories from rewrite
+RewriteCond %{REQUEST_URI} ^/admin [OR]
+RewriteCond %{REQUEST_URI} ^/api [OR]
+RewriteCond %{REQUEST_URI} ^/pages [OR]
+RewriteCond %{REQUEST_URI} ^/auth [OR]
+RewriteCond %{REQUEST_URI} ^/member [OR]
+RewriteCond %{REQUEST_URI} ^/includes [OR]
+RewriteCond %{REQUEST_URI} ^/uploads [OR]
+RewriteCond %{REQUEST_URI} ^/public
+RewriteRule ^(.*)$ - [L]
+
+# Remove index.php from URLs (only for non-excluded paths)
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php?/$1 [L]
