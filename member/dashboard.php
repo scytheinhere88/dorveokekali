@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/tier-helper.php';
 
 if (!isLoggedIn()) {
     redirect('/auth/login.php');
@@ -15,160 +16,208 @@ $stmt = $pdo->prepare("SELECT * FROM orders WHERE user_id = ? ORDER BY created_a
 $stmt->execute([$_SESSION['user_id']]);
 $recent_orders = $stmt->fetchAll();
 
+$current_tier = $user['current_tier'] ?? 'bronze';
+$total_topup = floatval($user['total_topup'] ?? 0);
+$tier_info = getTierInfo($current_tier);
+$tier_progress = getProgressToNextTier($total_topup);
+
 $page_title = 'My Dashboard - Dorve.id';
 include __DIR__ . '/../includes/header.php';
 ?>
 
 <style>
-    /* GUARANTEED TO WORK - PROFESSIONAL MEMBER LAYOUT */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    .prof-wrapper {
-        display: flex;
-        max-width: 1400px;
-        margin: 100px auto 60px;
-        padding: 0 40px;
-        gap: 48px;
-        align-items: flex-start;
+    .member-content h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 36px;
+        margin-bottom: 40px;
     }
 
-    /* SIDEBAR LEFT */
-    .prof-sidebar {
-        width: 280px;
-        min-width: 280px;
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
-        position: sticky;
-        top: 120px;
+    /* Tier Card */
+    .tier-card {
+        background: linear-gradient(135deg, <?php echo $tier_info['color']; ?>15 0%, <?php echo $tier_info['color']; ?>25 100%);
+        border: 2px solid <?php echo $tier_info['color']; ?>;
+        border-radius: 16px;
+        padding: 32px;
+        margin-bottom: 40px;
+        position: relative;
         overflow: hidden;
     }
 
-    .prof-sidebar-header {
-        padding: 24px;
-        background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
-        color: white;
-        text-align: center;
+    .tier-card::before {
+        content: '<?php echo $tier_info['icon']; ?>';
+        position: absolute;
+        right: -20px;
+        top: -20px;
+        font-size: 150px;
+        opacity: 0.1;
     }
 
-    .prof-sidebar-header h3 {
-        font-size: 18px;
+    .tier-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .tier-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background: white;
+        padding: 12px 24px;
+        border-radius: 50px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .tier-icon {
+        font-size: 32px;
+    }
+
+    .tier-name {
+        font-size: 28px;
         font-weight: 700;
-        margin-bottom: 6px;
+        color: #1F2937;
     }
 
-    .prof-sidebar-header p {
-        font-size: 13px;
-        opacity: 0.9;
+    .tier-benefits {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
     }
 
-    .prof-nav {
-        list-style: none;
-        padding: 12px;
-    }
-
-    .prof-nav li {
-        margin-bottom: 4px;
-    }
-
-    .prof-nav a {
+    .benefit-item {
+        background: white;
+        padding: 16px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 14px 16px;
-        color: #4B5563;
-        text-decoration: none;
-        border-radius: 12px;
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.2s;
     }
 
-    .prof-nav a:hover {
-        background: #F3F4F6;
-        color: #1F2937;
+    .benefit-icon {
+        font-size: 24px;
     }
 
-    .prof-nav a.active {
-        background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
-        color: white;
-        font-weight: 600;
-    }
-
-    .prof-nav .logout {
-        border-top: 1px solid #E5E7EB;
-        margin-top: 12px;
-        padding-top: 16px;
-    }
-
-    .prof-nav .logout a {
-        color: #EF4444;
-    }
-
-    /* CONTENT RIGHT */
-    .prof-content {
+    .benefit-text {
         flex: 1;
-        min-width: 0;
-        background: white;
-        border-radius: 20px;
-        padding: 48px;
-        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
     }
 
-    .prof-content h1 {
-        font-family: 'Playfair Display', serif;
-        font-size: 40px;
+    .benefit-label {
+        font-size: 12px;
+        color: #6B7280;
+        margin-bottom: 4px;
+    }
+
+    .benefit-value {
+        font-size: 18px;
         font-weight: 700;
-        margin-bottom: 36px;
         color: #1F2937;
     }
 
-    /* MOBILE */
-    @media (max-width: 968px) {
-        .prof-wrapper {
-            flex-direction: column;
-            padding: 0 20px;
-            margin: 80px auto 40px;
-            gap: 24px;
-        }
+    .tier-progress-section {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+    }
 
-        .prof-sidebar {
-            width: 100%;
-            position: relative;
-            top: 0;
-        }
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 14px;
+        color: #6B7280;
+    }
 
-        .prof-nav {
-            display: flex;
-            overflow-x: auto;
-            gap: 8px;
-            -webkit-overflow-scrolling: touch;
-        }
+    .progress-bar {
+        width: 100%;
+        height: 12px;
+        background: #E5E7EB;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 12px;
+    }
 
-        .prof-nav li {
-            margin-bottom: 0;
-            flex-shrink: 0;
-        }
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, <?php echo $tier_info['color']; ?> 0%, <?php echo $tier_info['color']; ?>CC 100%);
+        border-radius: 10px;
+        transition: width 0.3s;
+    }
 
-        .prof-nav a {
-            white-space: nowrap;
-            padding: 10px 16px;
-            font-size: 13px;
-        }
+    .progress-info {
+        font-size: 13px;
+        color: #6B7280;
+        text-align: center;
+    }
 
-        .prof-nav .logout {
-            border-top: none;
-            margin-top: 0;
-            padding-top: 0;
-        }
+    /* All Tiers Section */
+    .all-tiers-section {
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        margin-bottom: 40px;
+        border: 1px solid #E5E7EB;
+    }
 
-        .prof-content {
-            padding: 32px 24px;
-        }
+    .all-tiers-section h2 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 24px;
+        text-align: center;
+    }
 
-        .prof-content h1 {
-            font-size: 28px;
-        }
+    .tiers-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+
+    .tier-item {
+        background: #F9FAFB;
+        border: 2px solid #E5E7EB;
+        border-radius: 12px;
+        padding: 24px 16px;
+        text-align: center;
+        transition: all 0.3s;
+    }
+
+    .tier-item.current {
+        border-color: var(--tier-color);
+        background: linear-gradient(135deg, var(--tier-color)15 0%, var(--tier-color)25 100%);
+        transform: scale(1.05);
+    }
+
+    .tier-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+
+    .tier-item-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+    }
+
+    .tier-item-name {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .tier-item-requirement {
+        font-size: 12px;
+        color: #6B7280;
+        margin-bottom: 16px;
+    }
+
+    .tier-item-benefits {
+        text-align: left;
+        font-size: 12px;
+    }
+
+    .tier-item-benefits div {
+        margin-bottom: 6px;
+        color: #4B5563;
     }
 
     /* Stats */
@@ -203,6 +252,31 @@ include __DIR__ . '/../includes/header.php';
     }
 
     @media (max-width: 968px) {
+        .member-content h1 {
+            font-size: 28px;
+            margin-bottom: 24px;
+        }
+
+        .tier-card {
+            padding: 24px 20px;
+        }
+
+        .tier-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .tier-benefits {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .tiers-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
         .stats {
             grid-template-columns: repeat(2, 1fr);
             gap: 16px;
@@ -213,36 +287,110 @@ include __DIR__ . '/../includes/header.php';
         .stats {
             grid-template-columns: 1fr;
         }
+
+        .tiers-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .tier-item-icon {
+            font-size: 36px;
+        }
     }
 </style>
 
-<!-- PROFESSIONAL LAYOUT -->
-<div class="prof-wrapper">
+<div class="member-layout">
+    <?php include __DIR__ . '/../includes/member-sidebar.php'; ?>
 
-    <!-- SIDEBAR LEFT -->
-    <aside class="prof-sidebar">
-        <div class="prof-sidebar-header">
-            <h3>Welcome back!</h3>
-            <p><?php echo htmlspecialchars($user['name'] ?? $user['email']); ?></p>
+    <div class="member-content">
+        <h1>My Dashboard</h1>
+
+        <!-- Current Tier Card -->
+        <div class="tier-card">
+            <div class="tier-header">
+                <div class="tier-badge">
+                    <span class="tier-icon"><?php echo $tier_info['icon']; ?></span>
+                    <span class="tier-name"><?php echo $tier_info['name']; ?> Member</span>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 14px; color: #6B7280;">Total Top-up</div>
+                    <div style="font-size: 24px; font-weight: 700;">Rp <?php echo number_format($total_topup, 0, ',', '.'); ?></div>
+                </div>
+            </div>
+
+            <div class="tier-benefits">
+                <div class="benefit-item">
+                    <span class="benefit-icon">🎁</span>
+                    <div class="benefit-text">
+                        <div class="benefit-label">Member Discount</div>
+                        <div class="benefit-value"><?php echo $tier_info['discount']; ?>%</div>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-icon">💰</span>
+                    <div class="benefit-text">
+                        <div class="benefit-label">Referral Commission</div>
+                        <div class="benefit-value"><?php echo $tier_info['commission']; ?>%</div>
+                    </div>
+                </div>
+            </div>
+
+            <?php if ($tier_progress['next_tier']): ?>
+            <div class="tier-progress-section">
+                <div class="progress-label">
+                    <span>Progress to <?php echo getTierInfo($tier_progress['next_tier'])['name']; ?></span>
+                    <span><?php echo number_format($tier_progress['progress'], 1); ?>%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: <?php echo $tier_progress['progress']; ?>%"></div>
+                </div>
+                <div class="progress-info">
+                    Top-up Rp <?php echo number_format($tier_progress['needed'], 0, ',', '.'); ?> more to unlock <?php echo getTierInfo($tier_progress['next_tier'])['icon']; ?> <?php echo getTierInfo($tier_progress['next_tier'])['name']; ?> tier!
+                </div>
+            </div>
+            <?php else: ?>
+            <div class="tier-progress-section">
+                <div style="text-align: center; padding: 12px; color: #10B981; font-weight: 600;">
+                    🎉 You've reached the highest tier! Enjoy maximum benefits!
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
 
-        <ul class="prof-nav">
-            <li><a href="/member/dashboard.php" class="active">🏠 Dashboard</a></li>
-            <li><a href="/member/orders.php">📦 My Orders</a></li>
-            <li><a href="/member/wallet.php">💰 My Wallet</a></li>
-            <li><a href="/member/address-book.php">📍 Address Book</a></li>
-            <li><a href="/member/referral.php">👥 My Referrals</a></li>
-            <li><a href="/member/vouchers/index.php">🎟️ My Vouchers</a></li>
-            <li><a href="/member/reviews.php">⭐ My Reviews</a></li>
-            <li><a href="/member/profile.php">👤 Edit Profile</a></li>
-            <li><a href="/member/password.php">🔐 Change Password</a></li>
-            <li class="logout"><a href="/auth/logout.php">🚪 Logout</a></li>
-        </ul>
-    </aside>
-
-    <!-- CONTENT RIGHT -->
-    <main class="prof-content">
-        <h1>My Dashboard</h1>
+        <!-- All Tiers Overview -->
+        <div class="all-tiers-section">
+            <h2>Membership Tiers</h2>
+            <div class="tiers-grid">
+                <?php
+                $all_tiers = ['bronze', 'silver', 'gold', 'platinum'];
+                foreach ($all_tiers as $tier_key):
+                    $tier_data = getTierInfo($tier_key);
+                    $is_current = $tier_key === $current_tier;
+                ?>
+                <div class="tier-item <?php echo $is_current ? 'current' : ''; ?>" style="--tier-color: <?php echo $tier_data['color']; ?>">
+                    <div class="tier-item-icon"><?php echo $tier_data['icon']; ?></div>
+                    <div class="tier-item-name"><?php echo $tier_data['name']; ?></div>
+                    <div class="tier-item-requirement">
+                        <?php
+                        if ($tier_data['min'] == 0) {
+                            echo 'Starting tier';
+                        } else {
+                            echo 'Rp ' . number_format($tier_data['min'], 0, ',', '.') . '+';
+                        }
+                        ?>
+                    </div>
+                    <div class="tier-item-benefits">
+                        <div>🎁 <?php echo $tier_data['discount']; ?>% Discount</div>
+                        <div>💰 <?php echo $tier_data['commission']; ?>% Commission</div>
+                    </div>
+                    <?php if ($is_current): ?>
+                    <div style="margin-top: 12px; padding: 6px 12px; background: white; border-radius: 20px; font-weight: 600; font-size: 11px;">
+                        YOUR TIER
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
 
         <!-- Stats -->
         <div class="stats">
@@ -306,7 +454,7 @@ include __DIR__ . '/../includes/header.php';
                 </a>
             </div>
         <?php endif; ?>
-    </main>
+    </div>
 
 </div>
 
