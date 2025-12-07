@@ -31,16 +31,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
         $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $fileType = $_FILES['image']['type'];
-        
+
         if (in_array($fileType, $allowedTypes)) {
             $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
             $imageName = 'voucher_' . uniqid() . '.' . $extension;
             $uploadPath = __DIR__ . '/../../uploads/vouchers/' . $imageName;
-            
+
             if (!is_dir(__DIR__ . '/../../uploads/vouchers/')) {
                 mkdir(__DIR__ . '/../../uploads/vouchers/', 0755, true);
             }
-            
+
             move_uploaded_file($_FILES['image']['tmp_name'], $uploadPath);
         } else {
             $error = 'Invalid image type. Only JPG, PNG, GIF, WebP allowed.';
@@ -50,8 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$error && $code && $discount_value >= 0) {
         try {
             $stmt = $pdo->prepare("
-                INSERT INTO vouchers (code, name, description, image, type, discount_type, discount_value, max_discount, 
-                                     min_purchase, max_usage_per_user, total_usage_limit, valid_from, valid_until, 
+                INSERT INTO vouchers (code, name, description, image, type, discount_type, discount_value, max_discount,
+                                     min_purchase, max_usage_per_user, total_usage_limit, valid_from, valid_until,
                                      terms_conditions, is_active, target_type, target_tier)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
@@ -73,83 +73,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Kode voucher dan nilai wajib diisi!';
     }
 }
+
+$page_title = 'Create New Voucher';
+include __DIR__ . '/../includes/admin-header.php';
 ?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Voucher - Admin Dorve</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #F8F9FA; color: #1A1A1A; }
-        .admin-layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-        .admin-sidebar { background: #1A1A1A; color: white; padding: 30px 0; position: fixed; width: 260px; height: 100vh; overflow-y: auto; }
-        .admin-logo { font-size: 24px; font-weight: 700; letter-spacing: 3px; padding: 0 30px 30px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .admin-nav { padding: 20px 0; }
-        .nav-item { padding: 12px 30px; color: rgba(255,255,255,0.7); text-decoration: none; display: block; transition: all 0.3s; }
-        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); color: white; }
-        .admin-content { margin-left: 260px; padding: 40px; }
-        .header { margin-bottom: 40px; }
-        .header h1 { font-size: 32px; font-weight: 600; }
-        .form-container { background: white; border-radius: 12px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); max-width: 900px; }
-        .form-group { margin-bottom: 24px; }
-        label { display: block; margin-bottom: 8px; font-weight: 500; color: #1A1A1A; }
-        .help-text { font-size: 13px; color: #6c757d; margin-top: 4px; }
-        input[type="text"], input[type="number"], input[type="datetime-local"], input[type="file"], select, textarea {
-            width: 100%; padding: 12px 16px; border: 1px solid #E8E8E8; border-radius: 6px;
-            font-size: 15px; font-family: 'Inter', sans-serif; transition: all 0.3s;
-        }
-        textarea { min-height: 100px; resize: vertical; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: #1A1A1A; }
-        .checkbox-group { display: flex; align-items: center; gap: 8px; }
-        .checkbox-group input[type="checkbox"] { width: auto; }
-        .btn { padding: 12px 24px; border-radius: 6px; font-size: 15px; font-weight: 500;
-            cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.3s; border: none; }
-        .btn-primary { background: #1A1A1A; color: white; }
-        .btn-primary:hover { background: #000000; }
-        .btn-secondary { background: #E8E8E8; color: #1A1A1A; }
-        .btn-secondary:hover { background: #D0D0D0; }
-        .button-group { display: flex; gap: 12px; margin-top: 32px; }
-        .alert { padding: 16px; border-radius: 6px; margin-bottom: 24px; }
-        .alert-error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-        .image-preview { margin-top: 12px; max-width: 200px; border-radius: 8px; }
-        .image-upload-area {
-            border: 2px dashed #E8E8E8; border-radius: 8px; padding: 24px;
-            text-align: center; cursor: pointer; transition: all 0.3s;
-        }
-        .image-upload-area:hover { border-color: #1A1A1A; background: #F8F9FA; }
-        .image-upload-area .icon { font-size: 48px; margin-bottom: 12px; }
-    </style>
-</head>
-<body>
-    <div class="admin-layout">
-        <aside class="admin-sidebar">
-            <div class="admin-logo">DORVE</div>
-            <nav class="admin-nav">
-                <a href="/admin/index.php" class="nav-item">Dashboard</a>
-                <a href="/admin/products/index.php" class="nav-item">Produk</a>
-                <a href="/admin/categories/index.php" class="nav-item">Kategori</a>
-                <a href="/admin/orders/index.php" class="nav-item">Pesanan</a>
-                <a href="/admin/users/index.php" class="nav-item">Pengguna</a>
-                <a href="/admin/vouchers/index.php" class="nav-item active">Voucher</a>
-                <a href="/admin/shipping/index.php" class="nav-item">Pengiriman</a>
-                <a href="/admin/pages/index.php" class="nav-item">Halaman CMS</a>
-                <a href="/admin/settings/index.php" class="nav-item">Pengaturan</a>
-                <a href="/auth/logout.php" class="nav-item">Logout</a>
-            </nav>
-        </aside>
 
-        <main class="admin-content">
-            <div class="header">
-                <h1>➕ Create New Voucher</h1>
-            </div>
+<style>
+.form-container { background: white; border-radius: 12px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); max-width: 900px; }
+.form-group { margin-bottom: 24px; }
+label { display: block; margin-bottom: 8px; font-weight: 500; color: #1A1A1A; }
+.help-text { font-size: 13px; color: #6c757d; margin-top: 4px; }
+input[type="text"], input[type="number"], input[type="datetime-local"], input[type="file"], select, textarea {
+    width: 100%; padding: 12px 16px; border: 2px solid #E5E7EB; border-radius: 8px;
+    font-size: 15px; font-family: 'Inter', sans-serif; transition: all 0.3s;
+}
+textarea { min-height: 100px; resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+.checkbox-group { display: flex; align-items: center; gap: 8px; }
+.checkbox-group input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+.btn { padding: 12px 28px; border-radius: 8px; font-size: 15px; font-weight: 600;
+    cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.3s; border: none; }
+.btn-primary { background: #3B82F6; color: white; }
+.btn-primary:hover { background: #2563EB; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); }
+.btn-secondary { background: #E5E7EB; color: #4B5563; }
+.btn-secondary:hover { background: #D1D5DB; }
+.button-group { display: flex; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 2px solid #F0F0F0; }
+.alert { padding: 16px 20px; border-radius: 8px; margin-bottom: 24px; font-weight: 500; }
+.alert-error { background: #FEE2E2; border: 1px solid #FCA5A5; color: #991B1B; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.image-preview { margin-top: 12px; max-width: 200px; border-radius: 8px; border: 2px solid #E5E7EB; }
+.image-upload-area {
+    border: 2px dashed #D1D5DB; border-radius: 8px; padding: 32px;
+    text-align: center; cursor: pointer; transition: all 0.3s; background: #F9FAFB;
+}
+.image-upload-area:hover { border-color: #3B82F6; background: #EFF6FF; }
+.image-upload-area .icon { font-size: 48px; margin-bottom: 12px; }
+.page-header { margin-bottom: 32px; }
+.page-header h1 { font-size: 32px; color: #1A1A1A; margin-bottom: 8px; font-weight: 700; }
+.page-header p { color: #6B7280; font-size: 15px; }
+</style>
 
-            <?php if ($error): ?>
-                <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
-            <?php endif; ?>
+<div class="page-header">
+    <h1>Create New Voucher</h1>
+    <p>Add a new voucher or promotional code for customers</p>
+</div>
+
+<?php if ($error): ?>
+    <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
+<?php endif; ?>
 
             <div class="form-container">
                 <form method="POST" enctype="multipart/form-data">
@@ -290,41 +261,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </form>
             </div>
-        </main>
-    </div>
 
-    <script>
-    function previewImage(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('preview').src = e.target.result;
-                document.getElementById('preview').style.display = 'block';
-            }
-            reader.readAsDataURL(input.files[0]);
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview').src = e.target.result;
+            document.getElementById('preview').style.display = 'block';
         }
+        reader.readAsDataURL(input.files[0]);
     }
+}
 
-    function toggleTierInput() {
-        const targetType = document.getElementById('target_type').value;
-        document.getElementById('tier_group').style.display = targetType === 'tier' ? 'block' : 'none';
-    }
+function toggleTierInput() {
+    const targetType = document.getElementById('target_type').value;
+    document.getElementById('tier_group').style.display = targetType === 'tier' ? 'block' : 'none';
+}
 
-    function updateForm() {
-        const type = document.getElementById('type').value;
-        const discountTypeGroup = document.getElementById('discount_type_group');
-        const maxDiscountGroup = document.getElementById('max_discount_group');
-        
-        if (type === 'free_shipping') {
-            discountTypeGroup.style.display = 'none';
-            maxDiscountGroup.querySelector('label').textContent = 'Max Shipping Discount (Rp)';
-            maxDiscountGroup.querySelector('.help-text').textContent = 'Batas maksimal potongan ongkir';
-        } else {
-            discountTypeGroup.style.display = 'block';
-            maxDiscountGroup.querySelector('label').textContent = 'Maksimal Diskon (Rp)';
-            maxDiscountGroup.querySelector('.help-text').textContent = 'Untuk tipe persentase, batas maksimal potongan';
-        }
+function updateForm() {
+    const type = document.getElementById('type').value;
+    const discountTypeGroup = document.getElementById('discount_type_group');
+    const maxDiscountGroup = document.getElementById('max_discount_group');
+
+    if (type === 'free_shipping') {
+        discountTypeGroup.style.display = 'none';
+        maxDiscountGroup.querySelector('label').textContent = 'Max Shipping Discount (Rp)';
+        maxDiscountGroup.querySelector('.help-text').textContent = 'Batas maksimal potongan ongkir';
+    } else {
+        discountTypeGroup.style.display = 'block';
+        maxDiscountGroup.querySelector('label').textContent = 'Maksimal Diskon (Rp)';
+        maxDiscountGroup.querySelector('.help-text').textContent = 'Untuk tipe persentase, batas maksimal potongan';
     }
-    </script>
-</body>
-</html>
+}
+</script>
+
+<?php include __DIR__ . '/../includes/admin-footer.php'; ?>
