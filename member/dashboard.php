@@ -514,12 +514,59 @@ include __DIR__ . '/../includes/header.php';
                     <div class="benefit-value-large"><?php echo $tier_info['commission']; ?>%</div>
                 </div>
                 <div class="benefit-card">
-                    <div class="benefit-icon-large">⭐</div>
-                    <div class="benefit-title">Priority Level</div>
-                    <div class="benefit-value-large"><?php
-                        $priorities = ['bronze' => 'Basic', 'silver' => 'High', 'gold' => 'VIP', 'platinum' => 'Elite'];
+                    <div class="benefit-icon-large">🚚</div>
+                    <div class="benefit-title">Free Shipping</div>
+                    <div class="benefit-value-large" style="font-size: 18px;">
+                        <?php
+                        $free_shipping = [
+                            'bronze' => 'Rp 500K+',
+                            'silver' => 'Rp 300K+',
+                            'gold' => 'Rp 100K+',
+                            'platinum' => 'Always'
+                        ];
+                        echo $free_shipping[$current_tier];
+                        ?>
+                    </div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon-large">🎂</div>
+                    <div class="benefit-title">Birthday Bonus</div>
+                    <div class="benefit-value-large" style="font-size: 18px;">
+                        <?php
+                        $birthday = [
+                            'bronze' => 'Rp 50K',
+                            'silver' => 'Rp 100K',
+                            'gold' => 'Rp 250K',
+                            'platinum' => 'Rp 500K'
+                        ];
+                        echo $birthday[$current_tier];
+                        ?>
+                    </div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon-large">⚡</div>
+                    <div class="benefit-title">Early Access</div>
+                    <div class="benefit-value-large" style="font-size: 18px;">
+                        <?php
+                        $early = [
+                            'bronze' => '-',
+                            'silver' => '24h',
+                            'gold' => '48h',
+                            'platinum' => '72h'
+                        ];
+                        echo $early[$current_tier];
+                        ?>
+                    </div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon-large">🎯</div>
+                    <div class="benefit-title">Priority Support</div>
+                    <div class="benefit-value-large" style="font-size: 18px;">
+                        <?php
+                        $priorities = ['bronze' => 'Normal', 'silver' => 'Fast', 'gold' => 'VIP', 'platinum' => 'Elite'];
                         echo $priorities[$current_tier];
-                    ?></div>
+                        ?>
+                    </div>
                 </div>
             </div>
 
