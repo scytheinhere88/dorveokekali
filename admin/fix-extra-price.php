@@ -9,9 +9,74 @@
 
 require_once __DIR__ . '/../config.php';
 
-// Simple auth check
-if (!isset($_SESSION['admin_id'])) {
-    die('<h2>Access denied</h2><p>Please <a href="/admin/login.php">login as admin</a> first.</p>');
+// Check if logged in as admin
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
+    ?>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Access Denied</title>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
+                margin: 0;
+                padding: 20px;
+            }
+            .access-denied {
+                background: white;
+                padding: 48px;
+                border-radius: 16px;
+                text-align: center;
+                max-width: 500px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            }
+            h1 {
+                color: #EF4444;
+                font-size: 48px;
+                margin-bottom: 16px;
+            }
+            h2 {
+                color: #1F2937;
+                margin-bottom: 24px;
+            }
+            p {
+                color: #6B7280;
+                margin-bottom: 32px;
+                line-height: 1.6;
+            }
+            a {
+                display: inline-block;
+                padding: 14px 32px;
+                background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+                color: white;
+                text-decoration: none;
+                border-radius: 8px;
+                font-weight: 600;
+                transition: all 0.3s;
+            }
+            a:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="access-denied">
+            <h1>🚫</h1>
+            <h2>Access Denied</h2>
+            <p>You need to be logged in as an administrator to access this page.</p>
+            <a href="/admin/login.php">Login as Admin</a>
+        </div>
+    </body>
+    </html>
+    <?php
+    exit;
 }
 
 ?>
