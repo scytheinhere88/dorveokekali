@@ -1,12 +1,15 @@
 <!--
-    PROFESSIONAL MEMBER LAYOUT
-    Luxury & Clean Design - Fully Responsive
-    Use this for ALL member pages
+    PROFESSIONAL MEMBER LAYOUT CSS
+    Include this file in ALL member pages for consistent styling
+
+    Usage:
+    <?php include __DIR__ . '/../includes/member-layout-professional.php'; ?>
 -->
 
 <style>
     /* ============================================
-       PROFESSIONAL MEMBER LAYOUT - GUARANTEED TO WORK!
+       PROFESSIONAL MEMBER LAYOUT - INLINE CSS
+       Guaranteed to work with no external dependencies!
        ============================================ */
 
     * {
@@ -19,13 +22,16 @@
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         background: #F8F9FA;
         color: #1F2937;
+        line-height: 1.6;
     }
 
     /* ============================================
-       DESKTOP: SIDEBAR LEFT, CONTENT RIGHT
+       MAIN WRAPPER - FLEXBOX LAYOUT
+       Desktop: Sidebar LEFT, Content RIGHT
+       Mobile: Stacked vertically
        ============================================ */
 
-    .member-wrapper {
+    .prof-wrapper {
         display: flex;
         max-width: 1400px;
         margin: 100px auto 60px;
@@ -34,104 +40,128 @@
         align-items: flex-start;
     }
 
-    /* SIDEBAR - LEFT SIDE */
-    .member-sidebar-pro {
+    /* ============================================
+       SIDEBAR - LEFT SIDE (Desktop)
+       ============================================ */
+
+    .prof-sidebar {
         width: 280px;
         min-width: 280px;
         background: white;
         border-radius: 20px;
-        padding: 0;
         box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
         position: sticky;
         top: 120px;
         overflow: hidden;
+        transition: all 0.3s;
     }
 
-    .sidebar-header-pro {
+    .prof-sidebar-header {
         padding: 28px 24px;
         background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
         color: white;
         text-align: center;
     }
 
-    .sidebar-header-pro h3 {
+    .prof-sidebar-header h3 {
         font-size: 18px;
         font-weight: 700;
         margin-bottom: 6px;
+        letter-spacing: 0.3px;
     }
 
-    .sidebar-header-pro p {
+    .prof-sidebar-header p {
         font-size: 13px;
         opacity: 0.9;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    .sidebar-nav-pro {
+    /* Navigation Menu */
+    .prof-nav {
         list-style: none;
         padding: 12px;
     }
 
-    .sidebar-nav-pro li {
+    .prof-nav li {
         margin-bottom: 4px;
     }
 
-    .sidebar-nav-pro a {
+    .prof-nav a {
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 12px;
         padding: 14px 16px;
         color: #4B5563;
         text-decoration: none;
         border-radius: 12px;
         font-size: 14px;
         font-weight: 500;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
     }
 
-    .sidebar-nav-pro a:hover {
+    .prof-nav a::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 0;
+        height: 100%;
+        background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, transparent 100%);
+        transition: width 0.3s;
+    }
+
+    .prof-nav a:hover {
         background: #F3F4F6;
         color: #1F2937;
         transform: translateX(4px);
     }
 
-    .sidebar-nav-pro a.active {
+    .prof-nav a:hover::before {
+        width: 100%;
+    }
+
+    .prof-nav a.active {
         background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
         color: white;
         font-weight: 600;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
     }
 
-    .sidebar-nav-pro a svg,
-    .sidebar-nav-pro a i {
-        width: 20px;
-        height: 20px;
-        flex-shrink: 0;
-    }
-
-    .sidebar-nav-pro .logout {
+    /* Logout section */
+    .prof-nav .logout {
         border-top: 1px solid #E5E7EB;
         margin-top: 12px;
         padding-top: 16px;
     }
 
-    .sidebar-nav-pro .logout a {
+    .prof-nav .logout a {
         color: #EF4444;
     }
 
-    .sidebar-nav-pro .logout a:hover {
+    .prof-nav .logout a:hover {
         background: #FEE2E2;
         color: #DC2626;
     }
 
-    /* CONTENT - RIGHT SIDE */
-    .member-content-pro {
+    /* ============================================
+       CONTENT - RIGHT SIDE (Desktop)
+       ============================================ */
+
+    .prof-content {
         flex: 1;
         min-width: 0;
         background: white;
         border-radius: 20px;
         padding: 48px;
         box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s;
     }
 
-    .member-content-pro h1 {
+    .prof-content h1 {
         font-family: 'Playfair Display', serif;
         font-size: 40px;
         font-weight: 700;
@@ -140,131 +170,164 @@
         line-height: 1.2;
     }
 
+    .prof-content h2 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 24px;
+        margin-top: 48px;
+        color: #1F2937;
+    }
+
     /* ============================================
-       MOBILE: STACKED LAYOUT
+       RESPONSIVE - MOBILE & TABLET
        ============================================ */
 
     @media (max-width: 968px) {
-        .member-wrapper {
+        .prof-wrapper {
             flex-direction: column;
             padding: 0 24px;
             margin: 80px auto 40px;
             gap: 24px;
         }
 
-        .member-sidebar-pro {
+        /* Sidebar becomes full width */
+        .prof-sidebar {
             width: 100%;
             position: relative;
             top: 0;
         }
 
-        .sidebar-nav-pro {
+        /* Navigation becomes horizontal scrollable */
+        .prof-nav {
             display: flex;
             overflow-x: auto;
-            padding: 12px;
             gap: 8px;
+            padding: 12px;
             -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
         }
 
-        .sidebar-nav-pro li {
+        .prof-nav::-webkit-scrollbar {
+            display: none; /* Chrome, Safari */
+        }
+
+        .prof-nav li {
             margin-bottom: 0;
             flex-shrink: 0;
         }
 
-        .sidebar-nav-pro a {
+        .prof-nav a {
             white-space: nowrap;
             padding: 10px 16px;
             font-size: 13px;
         }
 
-        .sidebar-nav-pro .logout {
+        .prof-nav a:hover {
+            transform: translateX(0) translateY(-2px);
+        }
+
+        .prof-nav .logout {
             border-top: none;
             margin-top: 0;
             padding-top: 0;
         }
 
-        .sidebar-header-pro {
-            padding: 20px;
-        }
-
-        .sidebar-header-pro h3 {
-            font-size: 16px;
-        }
-
-        .member-content-pro {
+        /* Content adjustments */
+        .prof-content {
             padding: 32px 24px;
+            border-radius: 16px;
         }
 
-        .member-content-pro h1 {
+        .prof-content h1 {
             font-size: 28px;
             margin-bottom: 28px;
+        }
+
+        .prof-content h2 {
+            font-size: 20px;
+            margin-top: 32px;
         }
     }
 
     @media (max-width: 640px) {
-        .member-wrapper {
+        .prof-wrapper {
             padding: 0 16px;
             margin: 70px auto 30px;
         }
 
-        .sidebar-header-pro {
-            display: none; /* Hide header on small mobile */
+        /* Hide sidebar header on very small screens */
+        .prof-sidebar-header {
+            padding: 16px;
         }
 
-        .member-content-pro {
+        .prof-sidebar-header h3 {
+            font-size: 16px;
+        }
+
+        .prof-content {
             padding: 24px 20px;
-            border-radius: 16px;
         }
 
-        .member-content-pro h1 {
+        .prof-content h1 {
             font-size: 24px;
             margin-bottom: 24px;
+        }
+
+        .prof-content h2 {
+            font-size: 18px;
         }
     }
 
     /* ============================================
-       SMOOTH ANIMATIONS
+       ANIMATIONS
        ============================================ */
 
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
-    .member-wrapper {
+    .prof-wrapper {
         animation: fadeIn 0.3s ease-out;
     }
-</style>
 
-<!-- Mobile Menu Toggle (for very small screens) -->
-<style>
-    .mobile-menu-toggle {
-        display: none;
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        width: 56px;
-        height: 56px;
-        background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
-        border-radius: 50%;
-        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-        border: none;
-        color: white;
-        font-size: 24px;
-        cursor: pointer;
-        z-index: 100;
-        transition: all 0.3s;
+    /* ============================================
+       UTILITY CLASSES
+       ============================================ */
+
+    .prof-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
-    .mobile-menu-toggle:active {
-        transform: scale(0.95);
+    .prof-badge-success {
+        background: #D1FAE5;
+        color: #065F46;
     }
 
-    @media (max-width: 640px) {
-        .mobile-menu-toggle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    .prof-badge-warning {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .prof-badge-danger {
+        background: #FEE2E2;
+        color: #DC2626;
+    }
+
+    .prof-badge-info {
+        background: #DBEAFE;
+        color: #1E40AF;
     }
 </style>
