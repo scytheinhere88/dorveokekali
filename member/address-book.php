@@ -67,34 +67,110 @@ include __DIR__ . '/../includes/header.php';
 ?>
 
 <style>
-    :root {
-        --primary-gradient: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
-        --success-gradient: linear-gradient(135deg, #10B981 0%, #059669 100%);
-        --danger-color: #EF4444;
-        --text-primary: #1F2937;
-        --text-secondary: #6B7280;
-        --border-color: #E5E7EB;
-        --bg-light: #F9FAFB;
+    /* PROFESSIONAL MEMBER LAYOUT */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .prof-wrapper {
+        display: flex;
+        max-width: 1400px;
+        margin: 100px auto 60px;
+        padding: 0 40px;
+        gap: 48px;
+        align-items: flex-start;
     }
 
-    .member-content {
+    .prof-sidebar {
+        width: 280px;
+        min-width: 280px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+        position: sticky;
+        top: 120px;
+        overflow: hidden;
+    }
+
+    .prof-sidebar-header {
+        padding: 24px;
+        background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
+        color: white;
+        text-align: center;
+    }
+
+    .prof-sidebar-header h3 {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .prof-sidebar-header p {
+        font-size: 13px;
+        opacity: 0.9;
+    }
+
+    .prof-nav {
+        list-style: none;
+        padding: 12px;
+        margin: 0;
+    }
+
+    .prof-nav li {
+        margin-bottom: 4px;
+    }
+
+    .prof-nav a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        color: #4B5563;
+        text-decoration: none;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .prof-nav a:hover {
+        background: #F3F4F6;
+        color: #1F2937;
+    }
+
+    .prof-nav a.active {
+        background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+        color: white;
+        font-weight: 600;
+    }
+
+    .prof-nav .logout {
+        border-top: 1px solid #E5E7EB;
+        margin-top: 12px;
+        padding-top: 16px;
+    }
+
+    .prof-nav .logout a {
+        color: #EF4444;
+    }
+
+    .prof-content {
         flex: 1;
         min-width: 0;
+        background: white;
+        border-radius: 20px;
+        padding: 48px;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
     }
 
-    .member-content h1 {
+    .prof-content h1 {
         font-family: 'Playfair Display', serif;
-        font-size: 42px;
-        margin-bottom: 12px;
-        background: linear-gradient(135deg, #1A1A1A 0%, #667EEA 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        font-size: 40px;
         font-weight: 700;
+        margin-bottom: 12px;
+        color: #1F2937;
     }
 
     .page-description {
-        color: var(--text-secondary);
+        color: #6B7280;
         margin-bottom: 36px;
         font-size: 16px;
     }
@@ -107,12 +183,6 @@ include __DIR__ . '/../includes/header.php';
         display: flex;
         align-items: center;
         gap: 10px;
-        animation: slideDown 0.3s ease-out;
-    }
-
-    @keyframes slideDown {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
     }
 
     .alert-success {
@@ -129,7 +199,7 @@ include __DIR__ . '/../includes/header.php';
 
     .btn-add {
         padding: 16px 32px;
-        background: var(--primary-gradient);
+        background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
         color: white;
         border: none;
         border-radius: 12px;
@@ -149,10 +219,6 @@ include __DIR__ . '/../includes/header.php';
         box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
     }
 
-    .btn-add:active {
-        transform: translateY(0);
-    }
-
     .address-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
@@ -164,9 +230,9 @@ include __DIR__ . '/../includes/header.php';
         border-radius: 20px;
         padding: 28px;
         box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-        border: 2px solid var(--border-color);
+        border: 2px solid #E5E7EB;
         position: relative;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.3s;
     }
 
     .address-card:hover {
@@ -184,7 +250,7 @@ include __DIR__ . '/../includes/header.php';
         position: absolute;
         top: 20px;
         right: 20px;
-        background: var(--success-gradient);
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
         color: white;
         padding: 8px 14px;
         border-radius: 8px;
@@ -197,7 +263,7 @@ include __DIR__ . '/../includes/header.php';
         font-size: 22px;
         font-weight: 700;
         margin-bottom: 16px;
-        color: var(--text-primary);
+        color: #1F2937;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -218,7 +284,7 @@ include __DIR__ . '/../includes/header.php';
 
     .address-details strong {
         font-weight: 600;
-        color: var(--text-primary);
+        color: #1F2937;
     }
 
     .address-actions {
@@ -226,7 +292,7 @@ include __DIR__ . '/../includes/header.php';
         gap: 10px;
         margin-top: 20px;
         padding-top: 20px;
-        border-top: 1px solid var(--border-color);
+        border-top: 1px solid #E5E7EB;
     }
 
     .btn {
@@ -240,19 +306,22 @@ include __DIR__ . '/../includes/header.php';
     }
 
     .btn-default {
-        background: var(--success-gradient);
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
         color: white;
         box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
     }
+
     .btn-default:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     }
+
     .btn-delete {
-        background: var(--danger-color);
+        background: #EF4444;
         color: white;
         box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
     }
+
     .btn-delete:hover {
         background: #DC2626;
         transform: translateY(-2px);
@@ -270,12 +339,6 @@ include __DIR__ . '/../includes/header.php';
         background: rgba(0,0,0,0.7);
         backdrop-filter: blur(8px);
         overflow-y: auto;
-        animation: fadeIn 0.3s;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
     }
 
     .modal-content {
@@ -286,12 +349,6 @@ include __DIR__ . '/../includes/header.php';
         margin: 40px auto;
         padding: 40px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        animation: slideUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    }
-
-    @keyframes slideUp {
-        from { transform: translateY(50px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
     }
 
     .modal h2 {
@@ -299,14 +356,14 @@ include __DIR__ . '/../includes/header.php';
         font-weight: 700;
         margin-bottom: 8px;
         font-family: 'Playfair Display', serif;
-        background: var(--primary-gradient);
+        background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
 
     .modal-subtitle {
-        color: var(--text-secondary);
+        color: #6B7280;
         margin-bottom: 32px;
         font-size: 15px;
     }
@@ -326,11 +383,11 @@ include __DIR__ . '/../includes/header.php';
     .form-group input, .form-group textarea {
         width: 100%;
         padding: 14px 18px;
-        border: 2px solid var(--border-color);
+        border: 2px solid #E5E7EB;
         border-radius: 12px;
         font-size: 15px;
         transition: all 0.3s;
-        background: var(--bg-light);
+        background: #F9FAFB;
     }
 
     .form-group input:focus, .form-group textarea:focus {
@@ -356,14 +413,14 @@ include __DIR__ . '/../includes/header.php';
         width: 100%;
         height: 450px;
         border-radius: 16px;
-        border: 2px solid var(--border-color);
+        border: 2px solid #E5E7EB;
         margin: 20px 0;
         box-shadow: 0 4px 16px rgba(0,0,0,0.08);
     }
 
     .map-hint {
         font-size: 14px;
-        color: var(--text-secondary);
+        color: #6B7280;
         padding: 16px 20px;
         background: #FEF3C7;
         border-radius: 12px;
@@ -375,7 +432,7 @@ include __DIR__ . '/../includes/header.php';
     .btn-submit {
         width: 100%;
         padding: 18px;
-        background: var(--success-gradient);
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
         color: white;
         border: none;
         border-radius: 12px;
@@ -404,9 +461,9 @@ include __DIR__ . '/../includes/header.php';
         grid-column: 1/-1;
         text-align: center;
         padding: 80px 40px;
-        background: var(--bg-light);
+        background: #F9FAFB;
         border-radius: 20px;
-        border: 2px dashed var(--border-color);
+        border: 2px dashed #E5E7EB;
     }
 
     .empty-state-icon {
@@ -419,16 +476,62 @@ include __DIR__ . '/../includes/header.php';
         font-size: 24px;
         font-weight: 700;
         margin-bottom: 12px;
-        color: var(--text-primary);
+        color: #1F2937;
     }
 
     .empty-state p {
-        color: var(--text-secondary);
+        color: #6B7280;
     }
 
     @media (max-width: 968px) {
-        .member-content h1 {
-            font-size: 32px;
+        .prof-wrapper {
+            flex-direction: column;
+            padding: 0 20px;
+            margin: 80px auto 40px;
+            gap: 24px;
+        }
+
+        .prof-sidebar {
+            width: 100%;
+            position: relative;
+            top: 0;
+        }
+
+        .prof-nav {
+            display: flex;
+            overflow-x: auto;
+            gap: 8px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .prof-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .prof-nav li {
+            margin-bottom: 0;
+            flex-shrink: 0;
+        }
+
+        .prof-nav a {
+            white-space: nowrap;
+            padding: 10px 16px;
+            font-size: 13px;
+        }
+
+        .prof-nav .logout {
+            border-top: none;
+            margin-top: 0;
+            padding-top: 0;
+        }
+
+        .prof-content {
+            padding: 32px 24px;
+        }
+
+        .prof-content h1 {
+            font-size: 28px;
         }
 
         .address-grid {
@@ -451,12 +554,6 @@ include __DIR__ . '/../includes/header.php';
         #map {
             height: 350px;
         }
-    }
-
-    @media (max-width: 480px) {
-        .member-content h1 {
-            font-size: 26px;
-        }
 
         .btn-add {
             width: 100%;
@@ -477,10 +574,28 @@ include __DIR__ . '/../includes/header.php';
     }
 </style>
 
-<div class="member-layout">
-    <?php include __DIR__ . '/../includes/member-sidebar.php'; ?>
+<div class="prof-wrapper">
+    <aside class="prof-sidebar">
+        <div class="prof-sidebar-header">
+            <h3>Welcome back!</h3>
+            <p><?php echo htmlspecialchars($user['name'] ?? $user['email']); ?></p>
+        </div>
 
-    <div class="member-content">
+        <ul class="prof-nav">
+            <li><a href="/member/dashboard.php">🏠 Dashboard</a></li>
+            <li><a href="/member/orders.php">📦 My Orders</a></li>
+            <li><a href="/member/wallet.php">💰 My Wallet</a></li>
+            <li><a href="/member/address-book.php" class="active">📍 Address Book</a></li>
+            <li><a href="/member/referral.php">👥 My Referrals</a></li>
+            <li><a href="/member/vouchers/index.php">🎟️ My Vouchers</a></li>
+            <li><a href="/member/reviews.php">⭐ My Reviews</a></li>
+            <li><a href="/member/profile.php">👤 Edit Profile</a></li>
+            <li><a href="/member/password.php">🔐 Change Password</a></li>
+            <li class="logout"><a href="/auth/logout.php">🚪 Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="prof-content">
         <h1>📍 Address Book</h1>
         <p class="page-description">Manage your shipping addresses for fast checkout</p>
 
@@ -533,7 +648,7 @@ include __DIR__ . '/../includes/header.php';
                             <?= nl2br(htmlspecialchars($addr['address'])) ?>
                         </div>
                         <?php if ($addr['latitude'] && $addr['longitude']): ?>
-                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
+                            <div style="font-size: 12px; color: #6B7280; margin-top: 8px;">
                                 <span>📌</span>
                                 Lat: <?= $addr['latitude'] ?>, Long: <?= $addr['longitude'] ?>
                             </div>
@@ -563,7 +678,7 @@ include __DIR__ . '/../includes/header.php';
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
-    </div>
+    </main>
 </div>
 
 <!-- Add Address Modal -->
@@ -719,7 +834,6 @@ function initHereMap() {
 
     } catch (error) {
         console.error('HERE Map initialization error:', error);
-        document.getElementById('map').innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #FEE2E2; flex-direction: column; padding: 20px; text-align: center;"><div style="font-size: 48px; margin-bottom: 16px;">❌</div><div style="font-size: 16px; font-weight: 600; color: #991B1B;">Map Error: ' + error.message + '</div></div>';
     }
 }
 
