@@ -233,7 +233,7 @@ include __DIR__ . '/../includes/header.php';
 
     .tier-benefits-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 20px;
         margin-bottom: 32px;
     }
@@ -525,21 +525,6 @@ include __DIR__ . '/../includes/header.php';
                             'platinum' => 'Always'
                         ];
                         echo $free_shipping[$current_tier];
-                        ?>
-                    </div>
-                </div>
-                <div class="benefit-card">
-                    <div class="benefit-icon-large">🎂</div>
-                    <div class="benefit-title">Birthday Bonus</div>
-                    <div class="benefit-value-large" style="font-size: 18px;">
-                        <?php
-                        $birthday = [
-                            'bronze' => 'Rp 50K',
-                            'silver' => 'Rp 100K',
-                            'gold' => 'Rp 250K',
-                            'platinum' => 'Rp 500K'
-                        ];
-                        echo $birthday[$current_tier];
                         ?>
                     </div>
                 </div>
