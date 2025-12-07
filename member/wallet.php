@@ -31,11 +31,12 @@ if ($step === 'confirm' && $txn_id) {
 }
 
 $page_title = 'My Wallet - Dorve';
+$active_page = 'wallet';
 include __DIR__ . '/../includes/header.php';
+include __DIR__ . '/../includes/member-layout-horizontal.php';
 ?>
 
 <style>
-    .member-content h1 { font-family: 'Playfair Display', serif; font-size: 36px; margin-bottom: 40px; }
 
     .wallet-balance-card { background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%); color: var(--white); padding: 40px; border-radius: 16px; margin-bottom: 40px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
     .balance-label { font-size: 14px; opacity: 0.8; margin-bottom: 12px; letter-spacing: 1px; text-transform: uppercase; }
@@ -372,11 +373,7 @@ include __DIR__ . '/../includes/header.php';
     }
 </style>
 
-<div class="member-layout">
-    <?php include __DIR__ . '/../includes/member-sidebar.php'; ?>
-
-    <div class="member-content">
-        <h1>My Wallet</h1>
+<h1>My Wallet</h1>
 
         <?php if (isset($_SESSION['success'])): ?>
             <div class="alert alert-success"><?php echo $_SESSION['success']; unset($_SESSION['success']); ?></div>
@@ -550,8 +547,8 @@ include __DIR__ . '/../includes/header.php';
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
-    </div>
-</div>
+
+<?php include __DIR__ . '/../includes/member-layout-horizontal-end.php'; ?>
 
 <!-- Modal for Unavailable Banks -->
 <div id="bankModal" class="modal">

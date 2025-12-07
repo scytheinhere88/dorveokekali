@@ -39,15 +39,12 @@ $orders = $stmt->fetchAll();
 
 $page_title = 'Pesanan Saya - Cek Status & Riwayat Belanja | Dorve House';
 $page_description = 'Lihat semua pesanan baju wanita Anda di Dorve House. Cek status pengiriman, detail pesanan, dan riwayat transaksi. Track pesanan dengan mudah.';
+$active_page = 'orders';
 include __DIR__ . '/../includes/header.php';
+include __DIR__ . '/../includes/member-layout-horizontal.php';
 ?>
 
 <style>
-    .member-content h1 {
-        font-family: 'Playfair Display', serif;
-        font-size: 36px;
-        margin-bottom: 40px;
-    }
 
     .order-card {
         background: var(--white);
@@ -578,11 +575,7 @@ include __DIR__ . '/../includes/header.php';
     }
 </style>
 
-<div class="member-layout">
-    <?php include __DIR__ . '/../includes/member-sidebar.php'; ?>
-
-    <div class="member-content">
-        <h1>My Orders</h1>
+<h1>My Orders</h1>
 
         <!-- PENDING ORDERS SECTION -->
         <?php if (!empty($pendingOrders)): ?>
@@ -756,8 +749,8 @@ include __DIR__ . '/../includes/header.php';
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>
-    </div>
-</div>
+
+<?php include __DIR__ . '/../includes/member-layout-horizontal-end.php'; ?>
 
 <?php include __DIR__ . '/../includes/tracking-modal.php'; ?>
 
