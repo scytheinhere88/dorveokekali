@@ -49,12 +49,6 @@ include __DIR__ . '/../includes/header.php';
 ?>
 
 <style>
-    .referral-container {
-        max-width: 1200px;
-        margin: 80px auto;
-        padding: 0 40px;
-    }
-
     .referral-header {
         text-align: center;
         margin-bottom: 60px;
@@ -252,10 +246,6 @@ include __DIR__ . '/../includes/header.php';
     }
 
     @media (max-width: 768px) {
-        .referral-container {
-            padding: 0 20px;
-        }
-
         .code-display {
             flex-direction: column;
         }
@@ -283,7 +273,10 @@ include __DIR__ . '/../includes/header.php';
     }
 </style>
 
-<div class="referral-container">
+<div class="member-layout">
+    <?php include __DIR__ . '/../includes/member-sidebar.php'; ?>
+
+    <div class="member-content">
     <div class="referral-header">
         <h1>🎁 My Referral Program</h1>
         <p>Invite friends and earn Rp 50,000 for each successful referral!</p>
@@ -479,6 +472,7 @@ include __DIR__ . '/../includes/header.php';
                 </ul>
             </div>
         </div>
+    </div>
     </div>
 </div>
 

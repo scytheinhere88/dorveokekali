@@ -40,12 +40,6 @@ include __DIR__ . '/../includes/header.php';
 ?>
 
 <style>
-    .review-container {
-        max-width: 800px;
-        margin: 80px auto;
-        padding: 0 20px;
-    }
-    
     .review-card {
         background: white;
         border-radius: 16px;
@@ -220,7 +214,10 @@ include __DIR__ . '/../includes/header.php';
     }
 </style>
 
-<div class="review-container">
+<div class="member-layout">
+    <?php include __DIR__ . '/../includes/member-sidebar.php'; ?>
+
+    <div class="member-content">
     <div class="review-card">
         <h1 style="font-size: 28px; margin-bottom: 24px; text-align: center;">✍️ Tulis Review Produk</h1>
         
@@ -289,6 +286,7 @@ include __DIR__ . '/../includes/header.php';
                 ✓ Kirim Review
             </button>
         </form>
+    </div>
     </div>
 </div>
 

@@ -21,83 +21,6 @@ include __DIR__ . '/../includes/header.php';
 ?>
 
 <style>
-    .member-layout {
-        max-width: 1400px;
-        margin: 80px auto;
-        padding: 0 40px;
-        display: grid;
-        grid-template-columns: 280px 1fr;
-        gap: 60px;
-    }
-
-    .member-sidebar {
-        position: sticky;
-        top: 120px;
-        height: fit-content;
-    }
-
-    .sidebar-header {
-        padding: 30px;
-        background: var(--cream);
-        margin-bottom: 24px;
-        border-radius: 8px;
-    }
-
-    .sidebar-header h3 {
-        font-family: 'Playfair Display', serif;
-        font-size: 24px;
-        margin-bottom: 8px;
-    }
-
-    .sidebar-header p {
-        font-size: 14px;
-        color: var(--grey);
-    }
-
-    .sidebar-nav {
-        list-style: none;
-    }
-
-    .sidebar-nav li {
-        margin-bottom: 8px;
-    }
-
-    .sidebar-nav a {
-        display: block;
-        padding: 14px 20px;
-        color: var(--charcoal);
-        text-decoration: none;
-        transition: all 0.3s;
-        border-radius: 4px;
-        font-size: 14px;
-    }
-
-    .sidebar-nav a:hover,
-    .sidebar-nav a.active {
-        background: var(--cream);
-        padding-left: 28px;
-    }
-
-    .logout-btn {
-        margin-top: 24px;
-        display: block;
-        width: 100%;
-        padding: 14px 20px;
-        background: var(--white);
-        border: 1px solid rgba(0,0,0,0.15);
-        color: #C41E3A;
-        text-decoration: none;
-        text-align: center;
-        border-radius: 4px;
-        font-size: 14px;
-        transition: all 0.3s;
-    }
-
-    .logout-btn:hover {
-        background: #C41E3A;
-        color: var(--white);
-    }
-
     .member-content h1 {
         font-family: 'Playfair Display', serif;
         font-size: 42px;
@@ -206,16 +129,6 @@ include __DIR__ . '/../includes/header.php';
     }
 
     @media (max-width: 968px) {
-        .member-layout {
-            grid-template-columns: 1fr;
-            gap: 40px;
-            padding: 40px 24px;
-        }
-
-        .member-sidebar {
-            position: static;
-        }
-
         .order-item {
             grid-template-columns: 1fr;
         }
@@ -223,26 +136,7 @@ include __DIR__ . '/../includes/header.php';
 </style>
 
 <div class="member-layout">
-    <aside class="member-sidebar">
-        <div class="sidebar-header">
-            <h3>Welcome back!</h3>
-            <p><?php echo htmlspecialchars($user['name']); ?></p>
-        </div>
-
-        <ul class="sidebar-nav">
-            <li><a href="/member/dashboard.php" class="active">Dashboard</a></li>
-            <li><a href="/member/wallet.php">My Wallet</a></li>
-            <li><a href="/member/orders.php">My Orders</a></li>
-            <li><a href="/member/referral.php">🎁 My Referrals</a></li>
-            <li><a href="/member/address-book.php">📍 Address Book</a></li>
-            <li><a href="/member/vouchers/">🎫 My Vouchers</a></li>
-            <li><a href="/member/reviews.php">⭐ My Reviews</a></li>
-            <li><a href="/member/profile.php">👤 Edit Profile</a></li>
-            <li><a href="/member/password.php">🔒 Change Password</a></li>
-        </ul>
-
-        <a href="/auth/logout.php" class="logout-btn">Logout</a>
-    </aside>
+    <?php include __DIR__ . '/../includes/member-sidebar.php'; ?>
 
     <div class="member-content">
         <h1>My Dashboard</h1>

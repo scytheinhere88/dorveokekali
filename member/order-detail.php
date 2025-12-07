@@ -35,12 +35,6 @@ include __DIR__ . '/../includes/header.php';
 ?>
 
 <style>
-    .order-detail-container {
-        max-width: 1200px;
-        margin: 120px auto 80px;
-        padding: 0 40px;
-    }
-
     .back-link {
         display: inline-flex;
         align-items: center;
@@ -335,7 +329,10 @@ include __DIR__ . '/../includes/header.php';
     .status-failed { background: #f8d7da; color: #721c24; }
 </style>
 
-<div class="order-detail-container">
+<div class="member-layout">
+    <?php include __DIR__ . '/../includes/member-sidebar.php'; ?>
+
+    <div class="member-content">
     <a href="/member/orders.php" class="back-link">
         ← Kembali ke Pesanan Saya
     </a>
@@ -487,6 +484,7 @@ include __DIR__ . '/../includes/header.php';
         <div class="address-text">
             <?php echo nl2br(htmlspecialchars($order['shipping_address'])); ?>
         </div>
+    </div>
     </div>
 </div>
 
