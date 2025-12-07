@@ -126,6 +126,250 @@ include __DIR__ . '/../includes/header.php';
         .member-layout { grid-template-columns: 1fr; gap: 40px; }
         .member-sidebar { position: static; }
     }
+
+    /* Comprehensive Mobile Responsive Fixes */
+    @media (max-width: 768px) {
+        /* Page Title */
+        .member-content h1 {
+            font-size: 28px;
+            margin-bottom: 24px;
+        }
+
+        /* Wallet Balance Card */
+        .wallet-balance-card {
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .balance-amount {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .balance-label {
+            font-size: 12px;
+        }
+
+        .wallet-actions {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-topup {
+            width: 100%;
+            padding: 14px 20px;
+            font-size: 14px;
+            min-height: 44px;
+        }
+
+        /* Quick Topup Section */
+        .quick-topup {
+            padding: 20px;
+            margin-bottom: 32px;
+        }
+
+        .quick-topup h3 {
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+
+        /* Topup Options Grid */
+        .topup-options {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .topup-option {
+            padding: 16px 12px;
+            font-size: 14px;
+            min-height: 60px;
+        }
+
+        .topup-amount {
+            font-size: 16px;
+        }
+
+        /* Bank Selection Grid */
+        .bank-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .bank-card {
+            padding: 16px;
+        }
+
+        .bank-name {
+            font-size: 16px;
+        }
+
+        .bank-number {
+            font-size: 14px;
+        }
+
+        /* Transaction List */
+        .transaction-item {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 16px;
+            gap: 12px;
+        }
+
+        .transaction-amount {
+            font-size: 16px;
+        }
+
+        .transaction-date {
+            font-size: 12px;
+        }
+
+        .transaction-status {
+            font-size: 11px;
+            padding: 4px 10px;
+        }
+
+        /* Form Inputs */
+        .custom-amount input {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 16px; /* Prevent iOS zoom */
+            border-radius: 8px;
+        }
+
+        .custom-amount label {
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        /* Confirmation Display */
+        .confirmation-card {
+            padding: 20px;
+        }
+
+        .amount-display {
+            padding: 20px;
+        }
+
+        .amount-value {
+            font-size: 32px;
+        }
+
+        .unique-code {
+            font-size: 20px;
+            word-break: break-all;
+        }
+
+        /* Upload Section */
+        .upload-box {
+            padding: 20px 16px;
+        }
+
+        /* Transactions Card */
+        .transactions-card {
+            padding: 20px;
+        }
+
+        .transactions-card h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Transfer Details */
+        .transfer-details {
+            padding: 20px;
+        }
+
+        /* Instructions */
+        .instructions {
+            padding: 16px;
+        }
+
+        /* Modal */
+        .modal-content {
+            width: 90%;
+            margin: 20% auto;
+            padding: 24px;
+        }
+
+        .modal-header {
+            font-size: 20px;
+        }
+
+        .modal-buttons {
+            flex-direction: column;
+        }
+
+        .modal-buttons button {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        /* Page Title */
+        .member-content h1 {
+            font-size: 24px;
+        }
+
+        /* Wallet Balance Card */
+        .wallet-balance-card {
+            padding: 20px;
+        }
+
+        .balance-amount {
+            font-size: 32px;
+        }
+
+        /* Quick Topup Section */
+        .quick-topup {
+            padding: 16px;
+        }
+
+        /* Topup Grid - Keep 2 columns on smallest screens */
+        .topup-options {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        /* Transaction List */
+        .transaction-item {
+            padding: 12px;
+        }
+
+        /* Confirmation Display */
+        .confirmation-card {
+            padding: 16px;
+        }
+
+        .amount-display {
+            padding: 16px;
+        }
+
+        .amount-value {
+            font-size: 28px;
+        }
+
+        .unique-code {
+            font-size: 18px;
+        }
+
+        /* Transactions Card */
+        .transactions-card {
+            padding: 16px;
+        }
+
+        /* Transfer Details */
+        .transfer-details {
+            padding: 16px;
+        }
+
+        /* Instructions */
+        .instructions {
+            padding: 12px;
+        }
+
+        .instructions ol {
+            margin-left: 16px;
+        }
+    }
 </style>
 
 <div class="member-layout">

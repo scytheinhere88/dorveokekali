@@ -271,6 +271,102 @@ include __DIR__ . '/../includes/header.php';
             padding: 12px 8px;
         }
     }
+
+    /* Additional Mobile Polish */
+    @media (max-width: 768px) {
+        .referral-header h1 {
+            font-size: 28px;
+        }
+
+        .referral-header p {
+            font-size: 15px;
+        }
+
+        .referral-code-card {
+            padding: 24px;
+        }
+
+        .referral-code-card h2 {
+            font-size: 20px;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .stat-card {
+            padding: 20px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+        }
+
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .voucher-card {
+            padding: 20px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .referral-header h1 {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .referral-header p {
+            font-size: 14px;
+        }
+
+        .referral-code-card {
+            padding: 20px;
+        }
+
+        .referral-code-card h2 {
+            font-size: 18px;
+        }
+
+        .code-box {
+            font-size: 20px;
+            padding: 12px 16px;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            padding: 10px 16px;
+            font-size: 13px;
+            min-height: 44px;
+        }
+
+        .stat-card {
+            padding: 16px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+        }
+
+        .section {
+            padding: 16px;
+        }
+
+        table {
+            font-size: 12px;
+        }
+
+        th, td {
+            padding: 8px 6px;
+        }
+    }
 </style>
 
 <div class="member-layout">

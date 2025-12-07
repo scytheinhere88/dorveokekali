@@ -212,6 +212,108 @@ include __DIR__ . '/../includes/header.php';
         opacity: 0.5;
         cursor: not-allowed;
     }
+
+/* ===== MOBILE RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+    .member-content h1 {
+        font-size: 28px;
+        margin-bottom: 24px;
+    }
+
+    .review-card {
+        padding: 24px;
+    }
+
+    .product-info {
+        gap: 12px;
+    }
+
+    .product-image {
+        width: 80px;
+        height: 80px;
+        flex-shrink: 0;
+    }
+
+    .product-name {
+        font-size: 14px;
+    }
+
+    .rating-section {
+        padding: 20px;
+    }
+
+    .rating-section h3 {
+        font-size: 18px;
+    }
+
+    .star-rating {
+        font-size: 40px;
+        gap: 8px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+    }
+
+    .form-group textarea {
+        padding: 12px 14px;
+        font-size: 16px; /* Prevent iOS zoom */
+    }
+
+    .upload-section {
+        padding: 20px;
+    }
+
+    .upload-box {
+        padding: 20px 16px;
+    }
+
+    .preview-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .submit-btn {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 14px;
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 480px) {
+    .member-content h1 {
+        font-size: 24px;
+    }
+
+    .review-card {
+        padding: 20px;
+    }
+
+    .product-image {
+        width: 60px;
+        height: 60px;
+    }
+
+    .rating-section {
+        padding: 16px;
+    }
+
+    .star-rating {
+        font-size: 32px;
+        gap: 6px;
+    }
+
+    .preview-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+
+    .upload-section {
+        padding: 16px;
+    }
+}
 </style>
 
 <div class="member-layout">

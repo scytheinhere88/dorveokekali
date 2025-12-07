@@ -34,6 +34,118 @@ include __DIR__ . '/../includes/header.php';
     .status-pending { background: #FFF3CD; color: #856404; }
     .empty-state { text-align: center; padding: 80px 40px; }
     .empty-state h3 { font-family: 'Playfair Display', serif; font-size: 28px; margin-bottom: 16px; }
+
+    /* ===== MOBILE RESPONSIVE ===== */
+
+    /* Tablet (768px and below) */
+    @media (max-width: 768px) {
+        .member-content h1 {
+            font-size: 28px;
+            margin-bottom: 24px;
+        }
+
+        .form-card {
+            padding: 20px;
+            max-width: 100%;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 16px; /* Prevent iOS zoom */
+            border-radius: 8px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 20px;
+            font-size: 14px;
+            min-height: 44px;
+        }
+
+        .alert {
+            font-size: 13px;
+            padding: 12px;
+        }
+
+        .review-card {
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .review-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .product-name {
+            font-size: 14px;
+        }
+
+        .review-status {
+            font-size: 11px;
+            padding: 4px 10px;
+        }
+
+        .star-rating {
+            font-size: 16px;
+        }
+
+        .review-text {
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .review-date {
+            font-size: 12px;
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+        }
+    }
+
+    /* Mobile Phone (480px and below) */
+    @media (max-width: 480px) {
+        .member-content h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .form-card {
+            padding: 16px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 10px 12px;
+        }
+
+        .btn {
+            padding: 12px 16px;
+            font-size: 13px;
+        }
+
+        .review-card {
+            padding: 16px;
+        }
+
+        .empty-state {
+            padding: 30px 16px;
+        }
+    }
 </style>
 
 <div class="member-layout">

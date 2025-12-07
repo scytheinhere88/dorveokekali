@@ -40,6 +40,73 @@ include __DIR__ . '/../includes/header.php';
     .alert { padding: 16px; border-radius: 4px; margin-bottom: 24px; font-size: 14px; }
     .alert-success { background: #D4EDDA; color: #155724; border: 1px solid #C3E6CB; }
     .alert-error { background: #F8D7DA; color: #721C24; border: 1px solid #F5C6CB; }
+
+    /* ===== MOBILE RESPONSIVE ===== */
+
+    /* Tablet (768px and below) */
+    @media (max-width: 768px) {
+        .member-content h1 {
+            font-size: 28px;
+            margin-bottom: 24px;
+        }
+
+        .form-card {
+            padding: 20px;
+            max-width: 100%;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 16px; /* Prevent iOS zoom */
+            border-radius: 8px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 20px;
+            font-size: 14px;
+            min-height: 44px;
+        }
+
+        .alert {
+            font-size: 13px;
+            padding: 12px;
+        }
+    }
+
+    /* Mobile Phone (480px and below) */
+    @media (max-width: 480px) {
+        .member-content h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .form-card {
+            padding: 16px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 10px 12px;
+        }
+
+        .btn {
+            padding: 12px 16px;
+            font-size: 13px;
+        }
+    }
 </style>
 
 <div class="member-layout">

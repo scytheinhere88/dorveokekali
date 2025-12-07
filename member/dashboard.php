@@ -133,6 +133,72 @@ include __DIR__ . '/../includes/header.php';
             grid-template-columns: 1fr;
         }
     }
+
+    /* Mobile Responsive Fixes */
+    @media (max-width: 768px) {
+        .member-content h1 {
+            font-size: 28px;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+        }
+
+        .stat-card {
+            padding: 20px;
+        }
+
+        .order-item {
+            padding: 16px 0;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .order-total {
+            text-align: left;
+            margin-top: 0;
+        }
+
+        .order-price {
+            font-size: 18px;
+        }
+
+        .order-number {
+            font-size: 16px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .member-content h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .stat-card {
+            padding: 16px;
+        }
+    }
 </style>
 
 <div class="member-layout">
@@ -198,8 +264,8 @@ include __DIR__ . '/../includes/header.php';
         }
         ?>
 
-        <div style="background: linear-gradient(135deg, #1A1A1A 0%, #3A3A3A 100%); padding: 40px; border-radius: 12px; margin: 48px 0; color: white;">
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px; align-items: center;">
+        <div style="background: linear-gradient(135deg, #1A1A1A 0%, #3A3A3A 100%); padding: 40px; border-radius: 12px; margin: 48px 0; color: white;" class="tier-status-section">
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px; align-items: center;" class="tier-status-grid">
                 <div>
                     <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
                         <div style="font-size: 48px;">
@@ -416,13 +482,93 @@ include __DIR__ . '/../includes/header.php';
             @media (max-width: 1200px) {
                 .tier-cards-grid { grid-template-columns: repeat(2, 1fr) !important; }
             }
-            
+
             @media (max-width: 768px) {
-                .tier-cards-grid { grid-template-columns: 1fr !important; }
+                .tier-cards-grid {
+                    grid-template-columns: 1fr !important;
+                    gap: 20px !important;
+                }
+
+                .tier-icon-wrapper {
+                    font-size: 40px !important;
+                }
             }
         </style>
-        
-        <div style="background: linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%); padding: 48px; border-radius: 20px; margin-bottom: 48px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+
+        <style>
+            /* Tier Status Section Responsive */
+            @media (max-width: 768px) {
+                .tier-status-section {
+                    padding: 24px !important;
+                    margin: 32px 0 !important;
+                }
+
+                .tier-status-grid {
+                    grid-template-columns: 1fr !important;
+                    gap: 24px !important;
+                }
+
+                .tier-status-section h2 {
+                    font-size: 28px !important;
+                }
+
+                .tier-status-section p {
+                    font-size: 13px !important;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .tier-status-section {
+                    padding: 20px !important;
+                }
+
+                .tier-status-section h2 {
+                    font-size: 24px !important;
+                }
+            }
+
+            /* Empty State Responsive */
+            .empty-state-container {
+                text-align: center;
+                padding: 60px 20px;
+                background: var(--cream);
+                border-radius: 8px;
+            }
+
+            @media (max-width: 768px) {
+                .empty-state-container {
+                    padding: 40px 20px;
+                }
+
+                .tier-cards-section {
+                    padding: 24px !important;
+                }
+
+                .tier-cards-section h2 {
+                    font-size: 28px !important;
+                }
+
+                .tier-cards-section p {
+                    font-size: 14px !important;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .empty-state-container {
+                    padding: 30px 16px;
+                }
+
+                .tier-cards-section {
+                    padding: 20px !important;
+                }
+
+                .tier-cards-section h2 {
+                    font-size: 24px !important;
+                }
+            }
+        </style>
+
+        <div style="background: linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%); padding: 48px; border-radius: 20px; margin-bottom: 48px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);" class="tier-cards-section">
             <h2 style="font-family: 'Playfair Display', serif; font-size: 36px; text-align: center; margin-bottom: 16px; color: #1A1A1A;">💎 Membership Tiers</h2>
             <p style="text-align: center; color: #6B6B6B; margin-bottom: 48px; font-size: 16px;">Semakin banyak topup, semakin besar benefit yang Anda dapatkan</p>
 
@@ -475,7 +621,7 @@ include __DIR__ . '/../includes/header.php';
         <h2 class="section-title">Recent Orders</h2>
 
         <?php if (empty($recent_orders)): ?>
-            <div style="text-align: center; padding: 60px 20px; background: var(--cream); border-radius: 8px;">
+            <div class="empty-state-container">
                 <p style="color: var(--grey); margin-bottom: 24px;">You haven't placed any orders yet.</p>
                 <a href="/pages/all-products.php" style="display: inline-block; padding: 14px 32px; background: var(--charcoal); color: var(--white); text-decoration: none; border-radius: 4px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Start Shopping</a>
             </div>

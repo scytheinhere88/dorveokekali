@@ -327,6 +327,120 @@ include __DIR__ . '/../includes/header.php';
     .status-processing { background: #D1ECF1; color: #0C5460; }
     .status-cancelled { background: #f8d7da; color: #721c24; }
     .status-failed { background: #f8d7da; color: #721c24; }
+
+/* ===== MOBILE RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+    .member-content h1 {
+        font-size: 28px;
+        margin-bottom: 20px;
+    }
+
+    .order-info-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .info-card {
+        padding: 20px;
+    }
+
+    .info-label {
+        font-size: 12px;
+    }
+
+    .info-value {
+        font-size: 16px;
+    }
+
+    .tracking-number {
+        font-size: 20px;
+        word-break: break-all;
+    }
+
+    .tracking-links {
+        gap: 8px;
+    }
+
+    .tracking-links a {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+
+    .status-timeline {
+        padding: 20px;
+    }
+
+    .timeline-step {
+        padding-left: 32px;
+    }
+
+    .timeline-step::before {
+        left: 6px;
+    }
+
+    .timeline-step::after {
+        left: 10px;
+    }
+
+    .item-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .item-info {
+        width: 100%;
+    }
+
+    .item-price,
+    .item-quantity {
+        margin: 0;
+    }
+
+    .order-summary {
+        padding: 20px;
+    }
+
+    .summary-row {
+        font-size: 14px;
+    }
+
+    .shipping-address {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .member-content h1 {
+        font-size: 24px;
+    }
+
+    .info-card {
+        padding: 16px;
+    }
+
+    .tracking-number {
+        font-size: 16px;
+    }
+
+    .status-timeline {
+        padding: 16px;
+    }
+
+    .timeline-step {
+        padding-left: 28px;
+        font-size: 13px;
+    }
+
+    .order-summary {
+        padding: 16px;
+    }
+
+    .shipping-address {
+        padding: 16px;
+    }
+}
 </style>
 
 <div class="member-layout">

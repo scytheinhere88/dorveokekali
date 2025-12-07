@@ -193,6 +193,389 @@ include __DIR__ . '/../includes/header.php';
         color: var(--grey);
         margin-bottom: 30px;
     }
+
+    /* ========================================
+       MOBILE RESPONSIVE STYLES
+       ======================================== */
+
+    /* Tablet and below (768px) */
+    @media (max-width: 768px) {
+        /* Page Title & Typography */
+        .member-content h1 {
+            font-size: 28px !important;
+            margin-bottom: 24px !important;
+        }
+
+        .section-title {
+            font-size: 22px !important;
+            margin-bottom: 20px !important;
+        }
+
+        /* Pending Orders Section - Override inline styles */
+        .member-content > div[style*="background: linear-gradient"] {
+            padding: 16px !important;
+        }
+
+        .member-content > div[style*="background: linear-gradient"] h2 {
+            font-size: 20px !important;
+            margin-bottom: 12px !important;
+        }
+
+        .member-content > div[style*="background: linear-gradient"] h2 span {
+            font-size: 12px !important;
+            padding: 3px 8px !important;
+            margin-left: 4px !important;
+        }
+
+        .member-content > div[style*="background: linear-gradient"] p {
+            font-size: 13px !important;
+            margin-bottom: 16px !important;
+        }
+
+        /* Pending Order Card Inline Styles */
+        .order-card[style*="border: 2px solid #F59E0B"] > div[style*="position: absolute"] {
+            font-size: 12px !important;
+            padding: 6px 12px !important;
+        }
+
+        .order-card div[style*="font-size: 18px"] {
+            font-size: 16px !important;
+        }
+
+        .order-card div[style*="display: flex"][style*="gap: 12px"][style*="margin-top: 16px"] {
+            flex-direction: column !important;
+        }
+
+        .order-card div[style*="display: flex"][style*="gap: 12px"][style*="margin-top: 16px"] button {
+            width: 100% !important;
+        }
+
+        /* Copy Button Inline Style Override */
+        button[style*="padding: 4px 12px"][onclick*="copyOrderId"] {
+            font-size: 11px !important;
+            padding: 4px 10px !important;
+        }
+
+        /* Order Cards - Stack and reduce padding */
+        .order-card {
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .order-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .order-items {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Order Actions - Full width buttons */
+        .order-actions {
+            flex-direction: column;
+            width: 100%;
+            gap: 8px;
+        }
+
+        .order-actions .btn {
+            width: 100%;
+            min-height: 44px;
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        /* Pending Orders Banner */
+        .pending-banner {
+            padding: 16px;
+            font-size: 14px;
+        }
+
+        .pending-banner h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        /* Order Status & Badges */
+        .order-status {
+            font-size: 11px;
+            padding: 4px 10px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            font-size: 11px;
+            padding: 4px 10px;
+        }
+
+        .order-number {
+            font-size: 16px;
+        }
+
+        .order-date {
+            font-size: 12px;
+        }
+
+        /* Copy Button & Order ID */
+        .copy-btn {
+            font-size: 12px;
+            padding: 6px 12px;
+            min-height: 36px;
+        }
+
+        .order-id-display {
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        /* Countdown Timer */
+        .countdown-timer {
+            font-size: 14px;
+            padding: 8px 12px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 40px 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+        }
+
+        /* Modal Responsive */
+        .modal-content {
+            width: 95%;
+            padding: 20px;
+        }
+
+        .bank-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        /* Order Details Grid */
+        .order-details {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        /* Order Total */
+        .order-total {
+            font-size: 20px;
+        }
+
+        /* Bank Transfer Modal - Mobile Responsive */
+        .bank-modal > div {
+            width: 95% !important;
+            padding: 24px !important;
+            max-width: none !important;
+        }
+
+        .bank-modal h2 {
+            font-size: 22px !important;
+            margin-bottom: 20px !important;
+        }
+
+        .bank-modal div[style*="font-size: 36px"] {
+            font-size: 28px !important;
+        }
+
+        /* Review Modal - Mobile Responsive */
+        .review-modal > div {
+            width: 95% !important;
+            padding: 20px !important;
+        }
+
+        .review-modal h2 {
+            font-size: 20px !important;
+            margin-bottom: 20px !important;
+        }
+
+        .review-modal div[style*="display: flex"][style*="gap: 16px"] {
+            flex-direction: column !important;
+            align-items: stretch !important;
+        }
+
+        .review-modal img {
+            width: 100% !important;
+            height: auto !important;
+            max-width: 200px !important;
+        }
+
+        .review-modal a[href*="write-review"] {
+            width: 100% !important;
+            text-align: center !important;
+        }
+
+        /* Complete Success Modal */
+        .member-content div[style*="position: fixed"][style*="rgba(0,0,0,0.7)"] > div {
+            width: 90% !important;
+            padding: 32px 20px !important;
+        }
+
+        .member-content div[style*="position: fixed"] h2 {
+            font-size: 24px !important;
+        }
+
+        .member-content div[style*="position: fixed"] div[style*="display: flex"] button {
+            padding: 12px !important;
+            font-size: 14px !important;
+        }
+
+        /* Order Header Inline Elements */
+        .order-header > div > div[style*="display: flex"] {
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+        }
+
+        /* Detail Items */
+        .detail-item .detail-label {
+            font-size: 12px;
+        }
+
+        .detail-item .detail-value {
+            font-size: 14px;
+        }
+    }
+
+    /* Mobile phones (480px and below) */
+    @media (max-width: 480px) {
+        /* Page Title */
+        .member-content h1 {
+            font-size: 24px !important;
+            margin-bottom: 20px !important;
+        }
+
+        /* Order Cards - Further reduce padding */
+        .order-card {
+            padding: 16px !important;
+            margin-bottom: 12px !important;
+        }
+
+        /* Pending Banner */
+        .pending-banner {
+            padding: 12px !important;
+        }
+
+        /* Pending Orders Section - Further reduce for small phones */
+        .member-content > div[style*="background: linear-gradient"] {
+            padding: 12px !important;
+            margin-bottom: 20px !important;
+        }
+
+        .member-content > div[style*="background: linear-gradient"] h2 {
+            font-size: 18px !important;
+        }
+
+        .member-content > div[style*="background: linear-gradient"] h2 span {
+            font-size: 11px !important;
+            padding: 2px 6px !important;
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 30px 16px !important;
+        }
+
+        .empty-state h3 {
+            font-size: 20px !important;
+        }
+
+        /* Order Number */
+        .order-number {
+            font-size: 14px !important;
+        }
+
+        /* Order Date */
+        .order-date {
+            font-size: 11px !important;
+        }
+
+        /* Countdown Timer */
+        .countdown-timer {
+            font-size: 11px !important;
+            padding: 5px 8px !important;
+        }
+
+        .order-card[style*="border: 2px solid #F59E0B"] > div[style*="position: absolute"] {
+            font-size: 11px !important;
+            padding: 5px 8px !important;
+        }
+
+        /* Order Total */
+        .order-total {
+            font-size: 18px !important;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            font-size: 10px !important;
+            padding: 3px 8px !important;
+        }
+
+        /* Buttons */
+        .btn {
+            font-size: 13px !important;
+            padding: 10px !important;
+            min-height: 40px !important;
+        }
+
+        /* Copy Button */
+        button[style*="padding: 4px 12px"][onclick*="copyOrderId"] {
+            font-size: 10px !important;
+            padding: 3px 8px !important;
+        }
+
+        /* Bank Modal - Small phones */
+        .bank-modal > div {
+            padding: 20px !important;
+        }
+
+        .bank-modal h2 {
+            font-size: 20px !important;
+        }
+
+        .bank-modal div[style*="font-size: 36px"] {
+            font-size: 24px !important;
+        }
+
+        .bank-modal button, .bank-modal a {
+            font-size: 13px !important;
+            padding: 12px !important;
+        }
+
+        /* Review Modal - Small phones */
+        .review-modal > div {
+            padding: 16px !important;
+        }
+
+        .review-modal h2 {
+            font-size: 18px !important;
+        }
+
+        /* Order Details - Smaller text */
+        .detail-item .detail-label {
+            font-size: 11px;
+        }
+
+        .detail-item .detail-value {
+            font-size: 13px;
+        }
+
+        /* Tracking Number */
+        .detail-value[style*="font-family: 'Courier New'"] {
+            font-size: 12px !important;
+            word-break: break-all;
+        }
+
+        /* Order Actions Gap */
+        .order-actions {
+            gap: 6px !important;
+        }
+    }
 </style>
 
 <div class="member-layout">

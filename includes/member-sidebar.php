@@ -14,6 +14,9 @@ if (!isset($user)) {
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 
+<!-- Global Responsive Styles for All Member Pages -->
+<link rel="stylesheet" href="/includes/member-responsive.css">
+
 <style>
     :root {
         --sidebar-bg: #FFFFFF;
