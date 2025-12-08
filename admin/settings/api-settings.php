@@ -10,16 +10,30 @@ $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS payment_gateway_settings (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            gateway_name VARCHAR(50) UNIQUE NOT NULL,
+            api_key TEXT,
+            api_secret TEXT,
+            server_key TEXT,
+            client_key TEXT,
+            merchant_id VARCHAR(100),
+            client_id TEXT,
+            client_secret TEXT,
+            is_production TINYINT(1) DEFAULT 0,
+            is_active TINYINT(1) DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+
         if (isset($_POST['action']) && $_POST['action'] === 'save_midtrans') {
-            // Get existing gateway settings or create new
-            $stmt = $pdo->prepare("SELECT * FROM payment_gateway_settings WHERE gateway_name = 'midtrans'");
+            $stmt = $pdo->prepare("SELECT id FROM payment_gateway_settings WHERE gateway_name = 'midtrans'");
             $stmt->execute();
             $existing = $stmt->fetch();
-            
+
             if ($existing) {
-                // Update
                 $stmt = $pdo->prepare("
-                    UPDATE payment_gateway_settings 
+                    UPDATE payment_gateway_settings
                     SET server_key = ?, client_key = ?, merchant_id = ?, is_production = ?, is_active = ?
                     WHERE gateway_name = 'midtrans'
                 ");
@@ -31,7 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     isset($_POST['midtrans_active']) ? 1 : 0
                 ]);
             } else {
-                // Insert
                 $stmt = $pdo->prepare("
                     INSERT INTO payment_gateway_settings (gateway_name, server_key, client_key, merchant_id, is_production, is_active)
                     VALUES ('midtrans', ?, ?, ?, ?, ?)
@@ -44,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     isset($_POST['midtrans_active']) ? 1 : 0
                 ]);
             }
-            
+
             $success = 'Midtrans settings saved successfully!';
         } elseif (isset($_POST['action']) && $_POST['action'] === 'save_biteship') {
             $stmt = $pdo->prepare("SELECT * FROM payment_gateway_settings WHERE gateway_name = 'biteship'");
@@ -81,11 +94,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$stmt = $pdo->query("SELECT * FROM payment_gateway_settings WHERE gateway_name = 'midtrans'");
-$midtrans_settings = $stmt->fetch();
+try {
+    $stmt = $pdo->query("SELECT * FROM payment_gateway_settings WHERE gateway_name = 'midtrans'");
+    $midtrans_settings = $stmt->fetch();
+} catch (Exception $e) {
+    $midtrans_settings = false;
+}
 
-$stmt = $pdo->query("SELECT * FROM payment_gateway_settings WHERE gateway_name = 'biteship'");
-$biteship_settings = $stmt->fetch();
+try {
+    $stmt = $pdo->query("SELECT * FROM payment_gateway_settings WHERE gateway_name = 'biteship'");
+    $biteship_settings = $stmt->fetch();
+} catch (Exception $e) {
+    $biteship_settings = false;
+}
 
 $page_title = 'API Settings - Admin';
 include __DIR__ . '/../includes/admin-header.php';

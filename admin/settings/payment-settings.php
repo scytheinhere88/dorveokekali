@@ -5,36 +5,27 @@ if (!isLoggedIn() || !isAdmin()) {
     redirect('/admin/login.php');
 }
 
-// Handle form submissions - using settings table
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if (isset($_POST['action'])) {
             switch ($_POST['action']) {
                 case 'update_payment_method':
-                    // Store in settings table
-                    $key = 'payment_' . $_POST['method_name'];
-                    $value = isset($_POST['is_active']) ? '1' : '0';
-                    
-                    $stmt = $pdo->prepare("INSERT INTO settings (setting_key, value, type) VALUES (?, ?, 'boolean') 
-                                          ON DUPLICATE KEY UPDATE value = ?");
-                    $stmt->execute([$key, $value, $value]);
+                    $method_id = intval($_POST['method_id'] ?? 0);
+                    $is_active = isset($_POST['is_active']) ? 1 : 0;
+
+                    $stmt = $pdo->prepare("UPDATE payment_methods SET is_active = ? WHERE id = ?");
+                    $stmt->execute([$is_active, $method_id]);
                     $_SESSION['success'] = 'Payment method updated!';
                     break;
 
                 case 'update_gateway_settings':
                     $gateway = $_POST['gateway_name'];
 
-                    // Store in settings table
-                    foreach ($_POST as $key => $value) {
-                        if (strpos($key, $gateway . '_') === 0) {
-                            $stmt = $pdo->prepare("INSERT INTO settings (setting_key, value, type) VALUES (?, ?, 'text') 
-                                                  ON DUPLICATE KEY UPDATE value = ?");
-                            $stmt->execute([$key, $value, $value]);
-                        }
-                    }
+                    $stmt = $pdo->prepare("SELECT id FROM payment_gateway_settings WHERE gateway_name = ?");
+                    $stmt->execute([$gateway]);
+                    $existing = $stmt->fetch();
 
-                    if ($stmt->rowCount() > 0) {
-                        // Update
+                    if ($existing) {
                         $stmt = $pdo->prepare("
                             UPDATE payment_gateway_settings
                             SET api_key = ?, api_secret = ?, merchant_id = ?, client_id = ?, client_secret = ?,
@@ -42,17 +33,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             WHERE gateway_name = ?
                         ");
                         $stmt->execute([
-                            $_POST['api_key'],
-                            $_POST['api_secret'],
-                            $_POST['merchant_id'],
-                            $_POST['client_id'],
-                            $_POST['client_secret'],
+                            $_POST['api_key'] ?? '',
+                            $_POST['api_secret'] ?? '',
+                            $_POST['merchant_id'] ?? '',
+                            $_POST['client_id'] ?? '',
+                            $_POST['client_secret'] ?? '',
                             isset($_POST['is_production']) ? 1 : 0,
                             isset($_POST['is_active']) ? 1 : 0,
                             $gateway
                         ]);
                     } else {
-                        // Insert
                         $stmt = $pdo->prepare("
                             INSERT INTO payment_gateway_settings
                             (gateway_name, api_key, api_secret, merchant_id, client_id, client_secret, is_production, is_active)
@@ -60,29 +50,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ");
                         $stmt->execute([
                             $gateway,
-                            $_POST['api_key'],
-                            $_POST['api_secret'],
-                            $_POST['merchant_id'],
-                            $_POST['client_id'],
-                            $_POST['client_secret'],
+                            $_POST['api_key'] ?? '',
+                            $_POST['api_secret'] ?? '',
+                            $_POST['merchant_id'] ?? '',
+                            $_POST['client_id'] ?? '',
+                            $_POST['client_secret'] ?? '',
                             isset($_POST['is_production']) ? 1 : 0,
                             isset($_POST['is_active']) ? 1 : 0
                         ]);
                     }
 
-                    $_SESSION['success'] = ucfirst($gateway) . ' settings updated!';
+                    $_SESSION['success'] = ucfirst($gateway) . ' settings saved successfully!';
                     break;
 
                 case 'update_system_settings':
+                    $pdo->exec("CREATE TABLE IF NOT EXISTS system_settings (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        setting_key VARCHAR(100) UNIQUE NOT NULL,
+                        setting_value TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                    )");
+
                     foreach ($_POST['settings'] as $key => $value) {
                         $stmt = $pdo->prepare("
                             INSERT INTO system_settings (setting_key, setting_value)
                             VALUES (?, ?)
-                            ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)
+                            ON DUPLICATE KEY UPDATE setting_value = ?
                         ");
-                        $stmt->execute([$key, $value]);
+                        $stmt->execute([$key, $value, $value]);
                     }
-                    $_SESSION['success'] = 'System settings updated!';
+                    $_SESSION['success'] = 'System settings saved successfully!';
                     break;
             }
         }
@@ -92,22 +90,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get payment methods
-$stmt = $pdo->query("SELECT * FROM payment_methods ORDER BY display_order ASC");
-$payment_methods = $stmt->fetchAll();
-
-// Get gateway settings
-$stmt = $pdo->query("SELECT * FROM payment_gateway_settings");
-$gateways = [];
-foreach ($stmt->fetchAll() as $row) {
-    $gateways[$row['gateway_name']] = $row;
+try {
+    $stmt = $pdo->query("SELECT * FROM payment_methods ORDER BY display_order ASC");
+    $payment_methods = $stmt->fetchAll();
+} catch (Exception $e) {
+    $payment_methods = [];
 }
 
-// Get system settings
-$stmt = $pdo->query("SELECT * FROM system_settings");
-$settings = [];
-foreach ($stmt->fetchAll() as $row) {
-    $settings[$row['setting_key']] = $row['setting_value'];
+try {
+    $stmt = $pdo->query("SELECT * FROM payment_gateway_settings");
+    $gateways = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $gateways[$row['gateway_name']] = $row;
+    }
+} catch (Exception $e) {
+    $gateways = [];
+}
+
+try {
+    $stmt = $pdo->query("SELECT * FROM system_settings");
+    $settings = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $settings[$row['setting_key']] = $row['setting_value'];
+    }
+} catch (Exception $e) {
+    $settings = [];
 }
 
 $page_title = 'Payment Settings';
@@ -202,11 +209,12 @@ include __DIR__ . '/../includes/admin-header.php';
                         </div>
                     </div>
                     <div class="method-actions">
-                        <form method="POST" onsubmit="return confirm('Toggle this payment method?');">
+                        <form method="POST" id="form_<?php echo $method['id']; ?>">
                             <input type="hidden" name="action" value="update_payment_method">
                             <input type="hidden" name="method_id" value="<?php echo $method['id']; ?>">
                             <label class="toggle-switch">
-                                <input type="checkbox" name="is_active" <?php echo $method['is_active'] ? 'checked' : ''; ?> onchange="this.form.submit()">
+                                <input type="checkbox" name="is_active" <?php echo $method['is_active'] ? 'checked' : ''; ?>
+                                       onchange="if(confirm('Toggle this payment method?')) this.form.submit(); else this.checked=!this.checked;">
                                 <span class="slider"></span>
                             </label>
                         </form>

@@ -9,9 +9,20 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 
 $success = $error = '';
 
-// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS site_settings (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            setting_key VARCHAR(100) UNIQUE NOT NULL,
+            setting_value TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+    } catch (PDOException $e) {
+        // Table might already exist
+    }
 
     if ($action === 'save_store') {
         try {
@@ -23,8 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
 
             foreach ($settings as $key => $value) {
-                $stmt = $pdo->prepare("INSERT INTO settings (setting_key, value) VALUES (?, ?)
-                                      ON DUPLICATE KEY UPDATE value = ?");
+                $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?)
+                                      ON DUPLICATE KEY UPDATE setting_value = ?");
                 $stmt->execute([$key, $value, $value]);
             }
 
@@ -43,8 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
 
             foreach ($settings as $key => $value) {
-                $stmt = $pdo->prepare("INSERT INTO settings (setting_key, value) VALUES (?, ?)
-                                      ON DUPLICATE KEY UPDATE value = ?");
+                $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?)
+                                      ON DUPLICATE KEY UPDATE setting_value = ?");
                 $stmt->execute([$key, $value, $value]);
             }
 
@@ -55,16 +66,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get current settings
 $settings = [];
 try {
-    $stmt = $pdo->query("SELECT setting_key, value FROM settings");
+    $stmt = $pdo->query("SELECT setting_key, setting_value FROM site_settings");
     while ($row = $stmt->fetch()) {
-        $settings[$row['setting_key']] = $row['value'];
+        $settings[$row['setting_key']] = $row['setting_value'];
     }
 } catch (PDOException $e) {
-    // Settings table might not exist
-    $error = 'Please run database migration first!';
+    // Table might not exist yet, will be created on first save
 }
 
 include __DIR__ . '/../includes/admin-header.php';
