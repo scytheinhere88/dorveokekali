@@ -4,37 +4,10 @@ php_value post_max_size 128M
 php_value max_execution_time 300
 php_value max_input_time 300
 
-# PROOF TEST: If you see "500 Internal Server Error" when visiting homepage,
-# it means .htaccess IS being read. If homepage still works normally,
-# it means .htaccess is NOT being read by the server.
-INTENTIONAL_SYNTAX_ERROR_TO_TEST_IF_HTACCESS_IS_READ
+# COMPLETELY DISABLE MOD_REWRITE
+# All pages must be accessed with full paths like /admin/login.php
+# This ensures NOTHING interferes with direct file access
 
-# Enable mod_rewrite
-RewriteEngine On
+# RewriteEngine Off
 
-# Redirect to HTTPS (if needed)
-# RewriteCond %{HTTPS} off
-# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
-# NUCLEAR OPTION: Explicitly bypass rewrite for specific directories
-# This MUST come FIRST before any other rules
-RewriteRule ^admin(/.*)?$ - [L]
-RewriteRule ^api(/.*)?$ - [L]
-RewriteRule ^auth(/.*)?$ - [L]
-RewriteRule ^member(/.*)?$ - [L]
-RewriteRule ^pages(/.*)?$ - [L]
-RewriteRule ^includes(/.*)?$ - [L]
-RewriteRule ^uploads(/.*)?$ - [L]
-RewriteRule ^public(/.*)?$ - [L]
-RewriteRule ^sounds(/.*)?$ - [L]
-
-# Allow all existing files to be accessed directly
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteRule ^ - [L]
-
-# Allow all existing directories to be accessed directly
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^ - [L]
-
-# Only rewrite non-existent files to index.php (for homepage routing)
-RewriteRule ^(.*)$ /index.php?/$1 [L]
+# NO REWRITE RULES AT ALL - Direct file access only!
