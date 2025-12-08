@@ -2,8 +2,8 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/email-helper.php';
 
-// ⚠️ GANTI EMAIL INI DENGAN EMAIL KAMU!
-$test_email = 'officiallangkalytica@gmail.com'; // ← GANTI INI!
+// Test email address
+$test_email = 'officiallangkalytica@gmail.com';
 $test_name = 'Test User';
 
 ?>

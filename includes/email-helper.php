@@ -16,11 +16,11 @@ if (file_exists($phpmailer_path)) {
     define('USE_SMTP', false);
 }
 
-// Email configuration - GANTI INI DENGAN EMAIL GMAIL KAMU!
+// Email configuration - CONFIGURED!
 define('SMTP_HOST', 'smtp.gmail.com');
 define('SMTP_PORT', 587);
-define('SMTP_USERNAME', 'your-email@gmail.com'); // ⚠️ GANTI INI!
-define('SMTP_PASSWORD', 'your-app-password'); // ⚠️ GANTI INI! (bukan password gmail biasa, tapi App Password)
+define('SMTP_USERNAME', 'officiallangkalytica@gmail.com');
+define('SMTP_PASSWORD', 'nqztkewcyrxowrsg'); // Gmail App Password
 define('FROM_EMAIL', 'noreply@dorve.id');
 define('FROM_NAME', 'Dorve.id - Pusat Fashion Indonesia');
 define('SITE_URL', 'https://dorve.id/');
