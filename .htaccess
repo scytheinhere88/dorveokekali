@@ -11,12 +11,23 @@ RewriteEngine On
 # RewriteCond %{HTTPS} off
 # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# CRITICAL: Allow all PHP files to be accessed directly
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteRule \.php$ - [L]
+# NUCLEAR OPTION: Explicitly bypass rewrite for specific directories
+# This MUST come FIRST before any other rules
+RewriteRule ^admin(/.*)?$ - [L]
+RewriteRule ^api(/.*)?$ - [L]
+RewriteRule ^auth(/.*)?$ - [L]
+RewriteRule ^member(/.*)?$ - [L]
+RewriteRule ^pages(/.*)?$ - [L]
+RewriteRule ^includes(/.*)?$ - [L]
+RewriteRule ^uploads(/.*)?$ - [L]
+RewriteRule ^public(/.*)?$ - [L]
+RewriteRule ^sounds(/.*)?$ - [L]
 
-# CRITICAL: Allow all existing files and directories
-RewriteCond %{REQUEST_FILENAME} -f [OR]
+# Allow all existing files to be accessed directly
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# Allow all existing directories to be accessed directly
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
