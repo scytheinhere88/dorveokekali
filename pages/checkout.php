@@ -92,6 +92,15 @@ try {
     // Gateway settings not available
 }
 
+// Get available bank accounts for display
+$available_banks = [];
+try {
+    $stmt = $pdo->query("SELECT bank_name, account_number, account_name FROM bank_accounts WHERE is_active = 1 ORDER BY display_order ASC LIMIT 3");
+    $available_banks = $stmt->fetchAll();
+} catch (Exception $e) {
+    // Bank accounts table not available yet
+}
+
 $page_title = 'Checkout - Selesaikan Pembayaran | Dorve House';
 $page_description = 'Checkout pesanan baju wanita Anda dengan aman. Pilih metode pembayaran: transfer bank, e-wallet, COD. Gratis ongkir min Rp500.000.';
 include __DIR__ . '/../includes/header.php';
@@ -1196,6 +1205,36 @@ include __DIR__ . '/../includes/header.php';
                                     <?= htmlspecialchars($method['name']) ?>
                                 </div>
                                 <div class="option-card-desc"><?= $desc ?></div>
+
+                                <?php if ($method['type'] === 'bank_transfer' && !empty($available_banks)): ?>
+                                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.08);">
+                                        <div style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 8px;">Available Banks:</div>
+                                        <?php foreach ($available_banks as $bank): ?>
+                                            <div style="font-size: 11px; color: #666; margin-bottom: 4px;">
+                                                • <?= htmlspecialchars($bank['bank_name']) ?> - <?= htmlspecialchars(substr($bank['account_number'], 0, 4)) ?>****
+                                            </div>
+                                        <?php endforeach; ?>
+                                        <div style="font-size: 11px; color: #999; margin-top: 6px; font-style: italic;">
+                                            Full details will be shown after placing order
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if ($method['type'] === 'midtrans'): ?>
+                                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.08);">
+                                        <div style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 8px;">Payment Options:</div>
+                                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                            <span style="font-size: 10px; padding: 4px 8px; background: #f0f0f0; border-radius: 4px; color: #666;">💳 Credit Card</span>
+                                            <span style="font-size: 10px; padding: 4px 8px; background: #f0f0f0; border-radius: 4px; color: #666;">📱 QRIS</span>
+                                            <span style="font-size: 10px; padding: 4px 8px; background: #f0f0f0; border-radius: 4px; color: #666;">💰 GoPay</span>
+                                            <span style="font-size: 10px; padding: 4px 8px; background: #f0f0f0; border-radius: 4px; color: #666;">💰 OVO</span>
+                                            <span style="font-size: 10px; padding: 4px 8px; background: #f0f0f0; border-radius: 4px; color: #666;">💰 ShopeePay</span>
+                                        </div>
+                                        <div style="font-size: 11px; color: #999; margin-top: 6px; font-style: italic;">
+                                            More options available after placing order
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     <?php endforeach; ?>

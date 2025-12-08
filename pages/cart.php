@@ -43,8 +43,8 @@ try {
             $item['available_stock'] = $result['total_stock'] ?? 0;
         }
 
-        // Check for stock issues
-        if ($item['qty'] > $item['available_stock'] || $item['available_stock'] <= 0) {
+        // Check for stock issues - only block if qty exceeds available stock
+        if ($item['qty'] > $item['available_stock']) {
             $has_stock_issues = true;
         }
     }
