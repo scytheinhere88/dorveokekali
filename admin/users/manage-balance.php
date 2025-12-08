@@ -37,15 +37,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if ($action === 'add') {
                 $new_balance = $current_balance + $amount;
-                $transaction_type = 'admin_credit';
-                $description = 'Balance added by admin: ' . $notes;
+                $transaction_type = 'deposit';
+                $description = '💰 Admin Credit: ' . $notes;
             } elseif ($action === 'deduct') {
                 if ($amount > $current_balance) {
                     throw new Exception('Deduct amount cannot exceed current balance!');
                 }
                 $new_balance = $current_balance - $amount;
-                $transaction_type = 'admin_debit';
-                $description = 'Balance deducted by admin: ' . $notes;
+                $transaction_type = 'withdrawal';
+                $description = '💸 Admin Debit: ' . $notes;
                 $amount = -$amount; // Negative for deduction
             }
             
@@ -55,11 +55,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Create transaction record
             $stmt = $pdo->prepare("
-                INSERT INTO wallet_transactions 
-                (user_id, type, amount, balance_before, balance_after, description, payment_status, reference_id, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, 'completed', ?, NOW())
+                INSERT INTO wallet_transactions
+                (user_id, type, amount, balance_before, balance_after, description, status, reference_id, admin_notes, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, 'approved', ?, ?, NOW())
             ");
-            
+
             $reference = 'ADMIN-' . strtoupper(substr(md5(time() . $user_id), 0, 8));
             $stmt->execute([
                 $user_id,
@@ -68,7 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $current_balance,
                 $new_balance,
                 $description,
-                $reference
+                $reference,
+                'Manual adjustment by admin: ' . $_SESSION['admin_name']
             ]);
             
             $pdo->commit();
@@ -83,10 +84,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get transaction history
+// Get transaction history (admin adjustments are marked with admin_notes)
 $stmt = $pdo->prepare("
-    SELECT * FROM wallet_transactions 
-    WHERE user_id = ? AND (type = 'admin_credit' OR type = 'admin_debit')
+    SELECT * FROM wallet_transactions
+    WHERE user_id = ? AND admin_notes LIKE '%Manual adjustment by admin%'
     ORDER BY created_at DESC
     LIMIT 20
 ");
@@ -218,7 +219,7 @@ include __DIR__ . '/../includes/admin-header.php';
                     <tr>
                         <td><?php echo date('d M Y H:i', strtotime($tx['created_at'])); ?></td>
                         <td>
-                            <?php if ($tx['type'] === 'admin_credit'): ?>
+                            <?php if ($tx['type'] === 'deposit'): ?>
                                 <span style="color: #10B981; font-weight: 600;">➕ ADD</span>
                             <?php else: ?>
                                 <span style="color: #EF4444; font-weight: 600;">➖ DEDUCT</span>
