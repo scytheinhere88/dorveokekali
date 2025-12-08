@@ -19,7 +19,27 @@ define('UPLOAD_URL', rtrim(SITE_URL, '/') . '/uploads/');
 
 // Session Configuration
 if (session_status() === PHP_SESSION_NONE) {
+    // Set session cookie parameters for better compatibility
+    $cookieParams = session_get_cookie_params();
+    session_set_cookie_params([
+        'lifetime' => $cookieParams['lifetime'] ?: 0,
+        'path' => '/',
+        'domain' => '',
+        'secure' => false, // Set to true if using HTTPS
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+
+    // Set session name
+    session_name('DORVE_SESSION');
+
+    // Start session
     session_start();
+
+    // Regenerate session ID periodically for security
+    if (!isset($_SESSION['session_started'])) {
+        $_SESSION['session_started'] = time();
+    }
 }
 
 // Include Upload Handler Functions
