@@ -6,19 +6,19 @@ php_value max_input_time 300
 
 # Enable mod_rewrite
 RewriteEngine On
-RewriteBase /
 
 # Redirect to HTTPS (if needed)
 # RewriteCond %{HTTPS} off
 # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# IMPORTANT: Skip rewrite for existing files and directories
+# CRITICAL: Allow all PHP files to be accessed directly
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule \.php$ - [L]
+
+# CRITICAL: Allow all existing files and directories
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^(.*)$ - [L]
+RewriteRule ^ - [L]
 
-# Skip rewrite for specific directories (in case they're accessed without direct file)
-RewriteRule ^(admin|api|pages|auth|member|includes|uploads|public|sounds)($|/) - [L]
-
-# Remove index.php from URLs (only for homepage/routes)
-RewriteRule ^(.*)$ index.php?/$1 [L]
+# Only rewrite non-existent files to index.php (for homepage routing)
+RewriteRule ^(.*)$ /index.php?/$1 [L]
