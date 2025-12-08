@@ -67,10 +67,19 @@ $stmt = $pdo->prepare("SELECT * FROM wallet_transactions WHERE user_id = ? ORDER
 $stmt->execute([$_SESSION['user_id']]);
 $transactions = $stmt->fetchAll();
 
-// If step is 'confirm', get transaction details
+// If step is 'confirm', get transaction details with bank info
 $pending_txn = null;
 if ($step === 'confirm' && $txn_id) {
-    $stmt = $pdo->prepare("SELECT * FROM wallet_transactions WHERE id = ? AND user_id = ?");
+    $stmt = $pdo->prepare("
+        SELECT
+            wt.*,
+            ba.bank_name,
+            ba.account_number,
+            ba.account_name
+        FROM wallet_transactions wt
+        LEFT JOIN bank_accounts ba ON wt.bank_account_id = ba.id
+        WHERE wt.id = ? AND wt.user_id = ?
+    ");
     $stmt->execute([$txn_id, $_SESSION['user_id']]);
     $pending_txn = $stmt->fetch();
 }
@@ -537,6 +546,7 @@ include __DIR__ . '/../includes/member-layout-horizontal.php';
 
             <div class="transfer-details">
                 <h4>Detail Transfer</h4>
+                <?php if (!empty($pending_txn['bank_name'])): ?>
                 <div class="detail-row">
                     <span class="detail-label">Bank</span>
                     <span class="detail-value"><?php echo htmlspecialchars($pending_txn['bank_name']); ?></span>
@@ -549,6 +559,12 @@ include __DIR__ . '/../includes/member-layout-horizontal.php';
                     <span class="detail-label">Atas Nama</span>
                     <span class="detail-value"><?php echo htmlspecialchars($pending_txn['account_name']); ?></span>
                 </div>
+                <?php else: ?>
+                <div style="padding: 20px; background: #FEF2F2; border-radius: 8px; color: #B91C1C; margin-bottom: 16px;">
+                    ⚠️ <strong>Bank information not available.</strong><br>
+                    Please contact admin or select a different bank account.
+                </div>
+                <?php endif; ?>
                 <div class="detail-row">
                     <span class="detail-label">Jumlah Transfer</span>
                     <span class="detail-value" style="color: #EF4444; font-size: 18px;">
