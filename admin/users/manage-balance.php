@@ -176,22 +176,29 @@ include __DIR__ . '/../includes/admin-header.php';
     <!-- Deduct Balance -->
     <div class="action-card">
         <h3 style="color: #EF4444;">➖ Deduct Balance</h3>
-        <form method="POST" onsubmit="return confirm('Are you sure you want to deduct balance from this user?');">
-            <input type="hidden" name="action" value="deduct">
-            
-            <div class="form-group">
-                <label>Amount (Rp)</label>
-                <input type="number" name="amount" min="1" step="1" max="<?php echo $user['wallet_balance']; ?>" required placeholder="50000">
-                <small>Max: Rp <?php echo number_format($user['wallet_balance'], 0, ',', '.'); ?></small>
+        <?php if ($user['wallet_balance'] <= 0): ?>
+            <div style="background: #FEF2F2; border: 1px solid #FECACA; padding: 16px; border-radius: 8px; color: #991B1B; text-align: center;">
+                <strong>⚠️ Cannot Deduct</strong><br>
+                <small>User has insufficient balance (Rp 0)</small>
             </div>
-            
-            <div class="form-group">
-                <label>Reason/Notes *</label>
-                <textarea name="notes" rows="3" required placeholder="e.g., Wrong deposit amount, Refund correction, etc."></textarea>
-            </div>
-            
-            <button type="submit" class="btn btn-danger" style="width: 100%;">Deduct Balance</button>
-        </form>
+        <?php else: ?>
+            <form method="POST" onsubmit="return confirm('Are you sure you want to deduct balance from this user?');">
+                <input type="hidden" name="action" value="deduct">
+
+                <div class="form-group">
+                    <label>Amount (Rp)</label>
+                    <input type="number" name="amount" min="1" step="1" max="<?php echo floor($user['wallet_balance']); ?>" required placeholder="50000">
+                    <small>Max: Rp <?php echo number_format($user['wallet_balance'], 0, ',', '.'); ?></small>
+                </div>
+
+                <div class="form-group">
+                    <label>Reason/Notes *</label>
+                    <textarea name="notes" rows="3" required placeholder="e.g., Wrong deposit amount, Refund correction, etc."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-danger" style="width: 100%;">Deduct Balance</button>
+            </form>
+        <?php endif; ?>
     </div>
 </div>
 
