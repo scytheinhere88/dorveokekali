@@ -259,11 +259,11 @@ include __DIR__ . '/../includes/header.php';
         </p>
         
         <form method="POST">
-            <button type="submit" name="resend" class="resend-btn" <?php echo !$can_resend ? 'disabled' : ''; ?>>
+            <button type="submit" name="resend" class="resend-btn" id="resendBtn" <?php echo !$can_resend ? 'disabled' : ''; ?>>
                 <?php if ($can_resend): ?>
                     🔄 Kirim Ulang Email
                 <?php else: ?>
-                    ⏳ Tunggu <?php echo $wait_time > 60 ? $wait_time . ' menit' : $wait_time . ' detik'; ?>
+                    <span id="btnText">⏳ Tunggu <?php echo $wait_time > 60 ? ceil($wait_time / 60) . ' menit' : $wait_time . ' detik'; ?></span>
                 <?php endif; ?>
             </button>
         </form>
@@ -282,25 +282,35 @@ include __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<?php if ($can_resend && $user && $user['verification_attempts'] < 3): ?>
+<?php if (!$can_resend && $wait_time > 0): ?>
 <script>
-// Auto-enable resend button after 60 seconds
-let countdown = 60;
-const button = document.querySelector('.resend-btn');
-const originalText = button.textContent;
+// Countdown timer for resend button
+let countdown = <?php echo $wait_time; ?>;
+const button = document.getElementById('resendBtn');
+const btnText = document.getElementById('btnText');
+const isMinutes = countdown > 60;
 
-if (button.disabled) {
-    const interval = setInterval(() => {
-        countdown--;
-        if (countdown > 0) {
-            button.textContent = `⏳ Tunggu ${countdown} detik`;
+const interval = setInterval(() => {
+    countdown--;
+
+    if (countdown > 0) {
+        if (isMinutes && countdown > 60) {
+            const minutes = Math.ceil(countdown / 60);
+            btnText.textContent = `⏳ Tunggu ${minutes} menit`;
         } else {
-            button.textContent = originalText;
-            button.disabled = false;
-            clearInterval(interval);
+            btnText.textContent = `⏳ Tunggu ${countdown} detik`;
         }
-    }, 1000);
-}
+    } else {
+        btnText.textContent = '🔄 Kirim Ulang Email';
+        button.disabled = false;
+        clearInterval(interval);
+
+        // Reload page to update state
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
+    }
+}, 1000);
 </script>
 <?php endif; ?>
 

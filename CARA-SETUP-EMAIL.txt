@@ -1,0 +1,121 @@
+═══════════════════════════════════════════════════════════
+📧 CARA SETUP EMAIL DORVE.ID - QUICK START
+═══════════════════════════════════════════════════════════
+
+🔴 MASALAH: Email verifikasi & forgot password TIDAK TERKIRIM
+✅ SOLUSI: Setup Gmail SMTP (5 MENIT!)
+
+═══════════════════════════════════════════════════════════
+STEP 1: INSTALL PHPMAILER
+═══════════════════════════════════════════════════════════
+
+Via Composer (jika ada):
+  $ composer require phpmailer/phpmailer
+
+ATAU Manual Download:
+  1. Download: https://github.com/PHPMailer/PHPMailer/archive/master.zip
+  2. Extract ke: /vendor/phpmailer/phpmailer/
+  3. Struktur: vendor/phpmailer/phpmailer/src/PHPMailer.php
+
+═══════════════════════════════════════════════════════════
+STEP 2: BUAT GMAIL APP PASSWORD (WAJIB!)
+═══════════════════════════════════════════════════════════
+
+⚠️ JANGAN pakai password Gmail biasa!
+
+1. Aktifkan 2FA di Gmail:
+   → https://myaccount.google.com/security
+   → Cari "2-Step Verification"
+   → Klik "Get Started"
+
+2. Generate App Password:
+   → https://myaccount.google.com/apppasswords
+   → App name: "Dorve.id Website"
+   → Klik "Create"
+   → COPY password 16 karakter (tanpa spasi!)
+   → Contoh: abcdefghijklmnop
+
+═══════════════════════════════════════════════════════════
+STEP 3: UPDATE CONFIG EMAIL
+═══════════════════════════════════════════════════════════
+
+Edit file: /includes/email-helper.php
+Line 22-23, ganti dengan:
+
+  define('SMTP_USERNAME', 'admin@dorve.id');  ← Email Gmail kamu
+  define('SMTP_PASSWORD', 'abcdefghijklmnop'); ← App Password (16 karakter)
+
+SAVE file!
+
+═══════════════════════════════════════════════════════════
+STEP 4: TEST EMAIL
+═══════════════════════════════════════════════════════════
+
+1. Edit file: /test-email.php
+   Line 7: Ganti dengan email kamu
+
+   $test_email = 'your-email@gmail.com';
+
+2. Buka browser:
+   http://dorve.id/test-email.php
+
+3. Cek hasil:
+   ✅ Jika muncul "SEMUA TEST BERHASIL" → DONE!
+   ❌ Jika gagal → Cek troubleshooting di bawah
+
+═══════════════════════════════════════════════════════════
+🎯 HASIL SETELAH SETUP
+═══════════════════════════════════════════════════════════
+
+✅ Email verifikasi terkirim saat user register
+✅ Forgot password bisa kirim reset link
+✅ Timer countdown 60 detik jalan normal
+✅ Order confirmation email otomatis
+✅ Shipping update email otomatis
+
+═══════════════════════════════════════════════════════════
+🚨 TROUBLESHOOTING
+═══════════════════════════════════════════════════════════
+
+Problem: "Class PHPMailer not found"
+→ PHPMailer belum ter-install
+→ Install: composer require phpmailer/phpmailer
+
+Problem: "SMTP Error: Could not authenticate"
+→ Password salah atau bukan App Password
+→ Generate App Password baru di Google Account
+
+Problem: Email ga masuk
+→ Cek folder Spam/Junk
+→ Pastikan config SMTP_USERNAME & SMTP_PASSWORD benar
+→ Test lagi dengan test-email.php
+
+Problem: Gmail block login
+→ HARUS pakai App Password (16 karakter)
+→ BUKAN password Gmail biasa!
+
+═══════════════════════════════════════════════════════════
+📖 PANDUAN LENGKAP
+═══════════════════════════════════════════════════════════
+
+Baca: EMAIL-SETUP-GUIDE.md
+Untuk tutorial lengkap dengan screenshot!
+
+═══════════════════════════════════════════════════════════
+✨ ALTERNATIF SMTP (Kalau Gmail ribet)
+═══════════════════════════════════════════════════════════
+
+1. SendGrid - Free 100 emails/day
+   → https://sendgrid.com/
+
+2. Mailgun - Free 5000 emails/month
+   → https://www.mailgun.com/
+
+3. Hosting SMTP - Tanya provider kamu
+
+═══════════════════════════════════════════════════════════
+DONE! 🎉
+═══════════════════════════════════════════════════════════
+
+Setelah setup, sistem email sudah production-ready!
+User bisa register, verifikasi email, dan reset password! 💪
