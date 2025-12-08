@@ -1,0 +1,101 @@
+=================================================================
+SOLUTION IF .htaccess IS NOT BEING READ BY SERVER
+=================================================================
+
+PROBLEM: Server is NOT reading .htaccess file (AllowOverride None)
+
+IMMEDIATE WORKAROUND - Disable ALL Rewriting:
+=================================================================
+
+Replace entire .htaccess content with:
+
+# Increase upload size to 128MB
+php_value upload_max_filesize 128M
+php_value post_max_size 128M
+php_value max_execution_time 300
+php_value max_input_time 300
+
+# DO NOT USE MOD_REWRITE - Server doesn't support it
+# RewriteEngine Off
+
+This will:
+✅ Admin pages will work: /admin/login.php
+✅ API endpoints will work: /api/orders/create.php
+✅ Member pages will work: /member/dashboard.php
+
+But:
+❌ Fancy homepage URLs won't work (need full paths)
+❌ You'll need to fix all internal links
+
+Alternative - Keep minimal homepage routing:
+=================================================================
+
+# Increase upload size to 128MB
+php_value upload_max_filesize 128M
+php_value post_max_size 128M
+php_value max_execution_time 300
+php_value max_input_time 300
+
+# Enable mod_rewrite
+RewriteEngine On
+
+# Only handle completely missing files
+# Send ONLY to homepage for routing
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/(admin|api|auth|member|pages|includes|uploads|public|sounds)
+RewriteRule ^(.*)$ /index.php?/$1 [L]
+
+BEST SOLUTION - Contact Hosting Provider:
+=================================================================
+
+You MUST ask them to:
+
+1. Edit Apache VirtualHost config for dorve.id
+2. Add/Change this setting:
+
+    <Directory /path/to/dorve.id/public_html>
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+3. Enable mod_rewrite:
+    a2enmod rewrite
+
+4. Restart Apache:
+    systemctl restart apache2
+
+IF USING NGINX (Check server software):
+=================================================================
+
+.htaccess does NOT work on Nginx!
+
+You need nginx config instead:
+
+server {
+    server_name dorve.id www.dorve.id;
+    root /path/to/public_html;
+    index index.php index.html;
+
+    # PHP handling
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+
+    # Static files and directories - serve directly
+    location ~ ^/(admin|api|auth|member|pages|includes|uploads|public|sounds)/ {
+        try_files $uri $uri/ =404;
+    }
+
+    # Homepage routing for everything else
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+}
+
+Contact hosting provider to add this config!
+
+=================================================================

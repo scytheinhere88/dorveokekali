@@ -1,13 +1,11 @@
+# This is a backup of the working .htaccess configuration
+# Use this if you need to restore
+
 # Increase upload size to 128MB
 php_value upload_max_filesize 128M
 php_value post_max_size 128M
 php_value max_execution_time 300
 php_value max_input_time 300
-
-# PROOF TEST: If you see "500 Internal Server Error" when visiting homepage,
-# it means .htaccess IS being read. If homepage still works normally,
-# it means .htaccess is NOT being read by the server.
-INTENTIONAL_SYNTAX_ERROR_TO_TEST_IF_HTACCESS_IS_READ
 
 # Enable mod_rewrite
 RewriteEngine On
