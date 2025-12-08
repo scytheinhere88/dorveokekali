@@ -11,11 +11,24 @@ $user = getCurrentUser();
 $step = $_GET['step'] ?? 'list';
 $txn_id = $_GET['txn_id'] ?? null;
 
-// Bank accounts (hardcoded for now - no bank_accounts table)
-$all_banks = [
-    ['id' => 1, 'bank_name' => 'BCA', 'account_number' => '1234567890', 'account_name' => 'Dorve House'],
-    ['id' => 2, 'bank_name' => 'Mandiri', 'account_number' => '0987654321', 'account_name' => 'Dorve House'],
-];
+// Get bank accounts from database
+try {
+    $stmt = $pdo->query("SELECT * FROM bank_accounts WHERE is_active = 1 ORDER BY display_order ASC");
+    $all_banks = $stmt->fetchAll();
+    if (empty($all_banks)) {
+        // Fallback if no active banks
+        $all_banks = [
+            ['id' => 1, 'bank_name' => 'BCA', 'account_number' => '1234567890', 'account_name' => 'Dorve House', 'is_active' => 1],
+            ['id' => 2, 'bank_name' => 'Mandiri', 'account_number' => '0987654321', 'account_name' => 'Dorve House', 'is_active' => 1],
+        ];
+    }
+} catch (Exception $e) {
+    // Fallback if table doesn't exist
+    $all_banks = [
+        ['id' => 1, 'bank_name' => 'BCA', 'account_number' => '1234567890', 'account_name' => 'Dorve House', 'is_active' => 1],
+        ['id' => 2, 'bank_name' => 'Mandiri', 'account_number' => '0987654321', 'account_name' => 'Dorve House', 'is_active' => 1],
+    ];
+}
 
 // Get wallet transactions
 $stmt = $pdo->prepare("SELECT * FROM wallet_transactions WHERE user_id = ? ORDER BY created_at DESC LIMIT 20");
