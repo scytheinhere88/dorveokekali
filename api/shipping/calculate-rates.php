@@ -33,6 +33,42 @@ try {
         throw new Exception('No items provided');
     }
 
+    // Format items for Biteship API (clean format, no HTML)
+    $formatted_items = [];
+    foreach ($items as $item) {
+        // Strip HTML tags from product name
+        $product_name = strip_tags($item['name'] ?? 'Product');
+
+        // Calculate price with discount
+        $price = floatval($item['price'] ?? 0);
+        $discount_percent = floatval($item['discount_percent'] ?? 0);
+
+        if ($discount_percent > 0) {
+            $price = $price * (1 - ($discount_percent / 100));
+        }
+
+        // Get weight in grams (default 500g if not set)
+        // If weight is in kg (< 50), convert to grams
+        $weight = floatval($item['weight'] ?? 0.5);
+        if ($weight < 50) {
+            // Assume it's in kg, convert to grams
+            $weight = $weight * 1000;
+        }
+        $weight = intval($weight);
+
+        // Get quantity
+        $quantity = intval($item['qty'] ?? 1);
+
+        $formatted_items[] = [
+            'name' => $product_name,
+            'value' => (int)$price,
+            'weight' => $weight,
+            'quantity' => $quantity
+        ];
+    }
+
+    error_log("Formatted Items: " . json_encode($formatted_items));
+
     // Get store origin from system_settings (try multiple tables for compatibility)
     $storeSettings = [];
 
@@ -84,8 +120,8 @@ try {
 
     error_log("Courier Codes: " . $courierCodes);
 
-    // Get rates
-    $result = $client->getRates($origin, $destination, $items, $courierCodes);
+    // Get rates with formatted items (no HTML!)
+    $result = $client->getRates($origin, $destination, $formatted_items, $courierCodes);
 
     error_log("Biteship API Response: " . json_encode($result));
     

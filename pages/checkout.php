@@ -14,7 +14,7 @@ $stmt->execute([$userId]);
 $savedAddresses = $stmt->fetchAll();
 
 // Get cart items with discount
-$stmt = $pdo->prepare("SELECT ci.*, p.name, p.price, p.discount_percent, pv.size, pv.color,
+$stmt = $pdo->prepare("SELECT ci.*, p.name, p.price, p.discount_percent, p.weight, pv.size, pv.color,
                        COALESCE(pi.image_path, p.image) as image_path
                        FROM cart_items ci
                        JOIN products p ON ci.product_id = p.id
