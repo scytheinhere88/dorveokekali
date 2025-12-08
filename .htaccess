@@ -4,17 +4,31 @@ php_value post_max_size 128M
 php_value max_execution_time 300
 php_value max_input_time 300
 
-# Enable directory access
-Options +FollowSymLinks
-DirectoryIndex index.php index.html
+# Enable mod_rewrite
+RewriteEngine On
 
-# Allow all access (no restrictions)
-<IfModule mod_authz_core.c>
-    Require all granted
-</IfModule>
+# CRITICAL: Bypass ALL directories - NO rewriting for these paths
+# This MUST be FIRST before any other rules
+RewriteRule ^test-direct\.php$ - [L]
+RewriteRule ^test-config\.php$ - [L]
+RewriteRule ^diagnostic\.php$ - [L]
+RewriteRule ^admin(/.*)?$ - [L]
+RewriteRule ^api(/.*)?$ - [L]
+RewriteRule ^auth(/.*)?$ - [L]
+RewriteRule ^member(/.*)?$ - [L]
+RewriteRule ^pages(/.*)?$ - [L]
+RewriteRule ^includes(/.*)?$ - [L]
+RewriteRule ^uploads(/.*)?$ - [L]
+RewriteRule ^public(/.*)?$ - [L]
+RewriteRule ^sounds(/.*)?$ - [L]
 
-# For Apache 2.2
-<IfModule !mod_authz_core.c>
-    Order allow,deny
-    Allow from all
-</IfModule>
+# Allow all existing files to be accessed directly
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# Allow all existing directories to be accessed directly
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Only rewrite non-existent files to index.php (for homepage routing)
+RewriteRule ^(.*)$ /index.php?/$1 [L]
