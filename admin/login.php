@@ -54,11 +54,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($user && password_verify($password, $user['password'])) {
                 $debug_info[] = "✅ Admin login successful!";
+                $debug_info[] = "🔧 Setting session variables...";
+
+                // Set all session variables
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['name'];
-                $_SESSION['role'] = 'admin';
+                $_SESSION['user_role'] = 'admin'; // for auth-check.php compatibility
+                $_SESSION['role'] = 'admin'; // for config.php compatibility
                 $_SESSION['is_admin'] = 1;
-                redirect('/admin/index.php');
+
+                $debug_info[] = "✅ Session set - user_id: " . $user['id'];
+                $debug_info[] = "✅ Session set - user_name: " . $user['name'];
+                $debug_info[] = "✅ Session set - role: admin";
+
+                // Force session write
+                session_write_close();
+                session_start();
+
+                $debug_info[] = "🔄 Redirecting to admin dashboard...";
+
+                // Use JavaScript redirect as fallback
+                echo '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>';
+                echo '<script>window.location.href="/admin/index.php";</script>';
+                echo '<p>Redirecting to admin panel... <a href="/admin/index.php">Click here if not redirected</a></p>';
+                echo '</body></html>';
+                exit();
             } else {
                 if (!$error) {
                     $error = 'Invalid email or password';
