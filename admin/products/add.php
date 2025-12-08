@@ -110,8 +110,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if (move_uploaded_file($_FILES['images']['tmp_name'][$key], $filepath)) {
                             // Resize image to max 800x800 (optional, improves performance)
                             // This would require GD library
-                            
-                            $image_path = '/uploads/products/' . $new_filename;
+
+                            $image_path = 'products/' . $new_filename;
                             
                             // First image becomes primary
                             $is_primary = ($uploaded_count === 0) ? 1 : 0;
