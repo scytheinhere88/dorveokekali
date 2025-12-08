@@ -63,10 +63,12 @@ if ($sort === 'price_low') {
     $order_by = 'p.created_at DESC';
 }
 
-// Simple query without variant joins
-$sql = "SELECT p.*, c.name as category_name, c.slug as category_slug
+// Query with image field from products or product_images
+$sql = "SELECT p.*, c.name as category_name, c.slug as category_slug,
+        COALESCE(pi.image_path, p.image) as image
         FROM products p
         LEFT JOIN categories c ON p.category_id = c.id
+        LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
         WHERE {$where_sql}
         ORDER BY {$order_by}";
 

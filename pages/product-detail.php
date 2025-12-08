@@ -37,9 +37,11 @@ $reviewStats = getReviewStats($product['id']);
 $avg_rating = $product['average_rating'] ?? 0;
 $total_reviews = $product['total_reviews'] ?? 0;
 
-$stmt = $pdo->prepare("SELECT p.*, pi.image_path FROM products p
+$stmt = $pdo->prepare("SELECT p.*, COALESCE(pi.image_path, p.image) as image
+                       FROM products p
                        LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                        WHERE p.category_id = ? AND p.id != ? AND p.is_active = 1
+                       ORDER BY RAND()
                        LIMIT 4");
 $stmt->execute([$product['category_id'], $product['id']]);
 $related_products = $stmt->fetchAll();
@@ -635,15 +637,49 @@ include __DIR__ . '/../includes/header.php';
 
 <?php if (!empty($related_products)): ?>
 <section class="related-section">
-    <h2 class="section-title">You May Also Like</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px;">
+        <h2 class="section-title" style="margin-bottom: 0;">You May Also Like</h2>
+        <a href="/pages/all-products.php?category=<?php echo $product['category_slug']; ?>"
+           style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; background: var(--charcoal); color: var(--white); text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s;"
+           onmouseover="this.style.background='var(--latte)'; this.style.color='var(--charcoal)';"
+           onmouseout="this.style.background='var(--charcoal)'; this.style.color='var(--white)';">
+            Show All Products
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+        </a>
+    </div>
     <div class="product-grid">
-        <?php foreach ($related_products as $related): ?>
-            <a href="/pages/product-detail.php?slug=<?php echo $related['slug']; ?>" style="text-decoration: none; color: inherit;">
-                <img src="<?php echo $related['image_path'] ? UPLOAD_URL . $related['image_path'] : 'https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=400'; ?>"
-                     alt="<?php echo htmlspecialchars($related['name']); ?>"
-                     style="width: 100%; aspect-ratio: 3/4; object-fit: cover; margin-bottom: 16px; background: var(--cream);">
-                <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 8px;"><?php echo htmlspecialchars($related['name']); ?></h3>
-                <div style="font-size: 16px; font-weight: 600;"><?php echo formatPrice($related['price']); ?></div>
+        <?php foreach ($related_products as $related):
+            $related_final_price = calculateDiscount($related['price'], $related['discount_percent']);
+        ?>
+            <a href="/pages/product-detail.php?slug=<?php echo $related['slug']; ?>" style="text-decoration: none; color: inherit; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-8px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div style="position: relative;">
+                    <img src="<?php echo $related['image'] ? UPLOAD_URL . $related['image'] : 'https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=400'; ?>"
+                         alt="<?php echo htmlspecialchars($related['name']); ?>"
+                         style="width: 100%; aspect-ratio: 3/4; object-fit: cover; margin-bottom: 16px; background: var(--cream); border-radius: 8px;">
+                    <?php if ($related['is_new']): ?>
+                        <span style="position: absolute; top: 12px; left: 12px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">NEW</span>
+                    <?php elseif ($related['discount_percent'] > 0): ?>
+                        <span style="position: absolute; top: 12px; left: 12px; background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); color: white; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">SALE</span>
+                    <?php endif; ?>
+                </div>
+                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--grey); margin-bottom: 8px;">
+                    <?php echo htmlspecialchars($related['category_name'] ?? 'Product'); ?>
+                </div>
+                <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 12px; font-weight: 500; line-height: 1.3;">
+                    <?php echo htmlspecialchars($related['name']); ?>
+                </h3>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <?php if ($related['discount_percent'] > 0): ?>
+                        <span style="font-size: 16px; font-weight: 600; color: var(--charcoal);"><?php echo formatPrice($related_final_price); ?></span>
+                        <span style="font-size: 14px; color: var(--grey); text-decoration: line-through;"><?php echo formatPrice($related['price']); ?></span>
+                        <span style="background: #EF4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700;">-<?php echo $related['discount_percent']; ?>%</span>
+                    <?php else: ?>
+                        <span style="font-size: 16px; font-weight: 600;"><?php echo formatPrice($related['price']); ?></span>
+                    <?php endif; ?>
+                </div>
             </a>
         <?php endforeach; ?>
     </div>

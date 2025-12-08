@@ -384,7 +384,7 @@ include __DIR__ . '/../includes/header.php';
                     $item_total = $item_price * $item['qty'];
                     ?>
                     <div class="cart-item">
-                        <img src="<?php echo $item['image_path'] ? '/' . $item['image_path'] : 'https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=300'; ?>"
+                        <img src="<?php echo $item['image_path'] ? UPLOAD_URL . $item['image_path'] : 'https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=300'; ?>"
                              alt="<?php echo htmlspecialchars($item['name']); ?>"
                              class="cart-item-image">
 

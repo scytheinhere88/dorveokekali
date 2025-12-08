@@ -13,11 +13,11 @@ $stmt = $pdo->prepare("SELECT * FROM user_addresses WHERE user_id = ? ORDER BY i
 $stmt->execute([$userId]);
 $savedAddresses = $stmt->fetchAll();
 
-// Get cart items
-$stmt = $pdo->prepare("SELECT ci.*, p.name, p.price, pv.size, pv.color 
-                       FROM cart_items ci 
-                       JOIN products p ON ci.product_id = p.id 
-                       LEFT JOIN product_variants pv ON ci.variant_id = pv.id 
+// Get cart items with discount
+$stmt = $pdo->prepare("SELECT ci.*, p.name, p.price, p.discount_percent, pv.size, pv.color
+                       FROM cart_items ci
+                       JOIN products p ON ci.product_id = p.id
+                       LEFT JOIN product_variants pv ON ci.variant_id = pv.id
                        WHERE ci.user_id = ?");
 $stmt->execute([$userId]);
 $cart_items = $stmt->fetchAll();
@@ -28,7 +28,12 @@ if (empty($cart_items)) {
     redirect('/pages/cart.php');
 }
 
-$subtotal = array_sum(array_map(fn($item) => $item['price'] * $item['qty'], $cart_items));
+// Calculate subtotal with discount
+$subtotal = 0;
+foreach ($cart_items as $item) {
+    $item_price = calculateDiscount($item['price'], $item['discount_percent']);
+    $subtotal += $item_price * $item['qty'];
+}
 
 // Get payment methods
 $stmt = $pdo->query("SELECT * FROM payment_methods WHERE is_active = 1 ORDER BY display_order");
@@ -1170,7 +1175,10 @@ include __DIR__ . '/../includes/header.php';
 
         <!-- Cart Items -->
         <div class="cart-items-list">
-            <?php foreach ($cart_items as $item): ?>
+            <?php foreach ($cart_items as $item):
+                $item_price = calculateDiscount($item['price'], $item['discount_percent']);
+                $item_total = $item_price * $item['qty'];
+            ?>
                 <div class="cart-item-row">
                     <div class="cart-item-name">
                         <?= htmlspecialchars($item['name']) ?>
@@ -1181,10 +1189,10 @@ include __DIR__ . '/../includes/header.php';
                             </small>
                         <?php endif; ?>
                         <small style="display: block; font-size: 13px; opacity: 0.8;">
-                            Qty: <?= $item['qty'] ?>
+                            Qty: <?= $item['qty'] ?> × Rp <?= number_format($item_price, 0, ',', '.') ?>
                         </small>
                     </div>
-                    <div class="cart-item-price">Rp <?= number_format($item['price'] * $item['qty'], 0, ',', '.') ?></div>
+                    <div class="cart-item-price">Rp <?= number_format($item_total, 0, ',', '.') ?></div>
                 </div>
             <?php endforeach; ?>
         </div>

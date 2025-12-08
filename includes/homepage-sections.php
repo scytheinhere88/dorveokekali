@@ -219,13 +219,13 @@ document.addEventListener('keydown', function(e) {
                 <a href="/pages/product-detail.php?slug=<?= $product['slug'] ?>" class="product-card">
                     <div class="product-image">
                         <?php if (!empty($product['image'])): ?>
-                            <img src="/uploads/products/<?= htmlspecialchars($product['image']) ?>" 
+                            <img src="<?= UPLOAD_URL . htmlspecialchars($product['image']) ?>"
                                  alt="<?= htmlspecialchars($product['name']) ?>">
                         <?php else: ?>
-                            <img src="https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=400" 
+                            <img src="https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=400"
                                  alt="<?= htmlspecialchars($product['name']) ?>">
                         <?php endif; ?>
-                        
+
                         <?php if ($product['is_new'] == 1): ?>
                             <span class="product-badge" style="background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);">✨ NEW</span>
                         <?php endif; ?>
@@ -277,10 +277,10 @@ document.addEventListener('keydown', function(e) {
                 <a href="/pages/product-detail.php?slug=<?= $product['slug'] ?>" class="product-card">
                     <div class="product-image">
                         <?php if (!empty($product['image'])): ?>
-                            <img src="/uploads/products/<?= htmlspecialchars($product['image']) ?>" 
+                            <img src="<?= UPLOAD_URL . htmlspecialchars($product['image']) ?>"
                                  alt="<?= htmlspecialchars($product['name']) ?>">
                         <?php else: ?>
-                            <img src="https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=400" 
+                            <img src="https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=400"
                                  alt="<?= htmlspecialchars($product['name']) ?>">
                         <?php endif; ?>
                         <span class="product-badge" style="background: #10B981;">🌟 NEW ARRIVAL</span>
