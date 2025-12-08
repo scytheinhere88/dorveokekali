@@ -17,10 +17,23 @@ if (!isLoggedIn()) {
 try {
     $userId = $_SESSION['user_id'];
     $paymentMethod = $_POST['payment_method'] ?? 'wallet';
-    $shippingMethodId = (int)($_POST['shipping_method'] ?? 0);
+    $shippingCost = floatval($_POST['shipping_cost'] ?? 0);
+    $courierCode = $_POST['courier_code'] ?? '';
+    $courierService = $_POST['courier_service'] ?? '';
     $voucherCodes = $_POST['voucher_codes'] ?? '';
     $voucherDiscount = floatval($_POST['voucher_discount'] ?? 0);
     $voucherFreeShipping = (int)($_POST['voucher_free_shipping'] ?? 0);
+
+    // Get shipping address
+    $recipientName = $_POST['recipient_name'] ?? '';
+    $phone = $_POST['phone'] ?? '';
+    $address = $_POST['address'] ?? '';
+    $latitude = $_POST['latitude'] ?? null;
+    $longitude = $_POST['longitude'] ?? null;
+
+    if (empty($recipientName) || empty($phone) || empty($address)) {
+        throw new Exception('Shipping information is required');
+    }
     
     // Start transaction
     $pdo->beginTransaction();
@@ -34,32 +47,35 @@ try {
         throw new Exception('User not found');
     }
     
-    // Get cart items
+    // Get cart items with discount
     $stmt = $pdo->prepare("
-        SELECT ci.*, p.name, p.price, pv.size, pv.color 
-        FROM cart_items ci 
-        JOIN products p ON ci.product_id = p.id 
-        LEFT JOIN product_variants pv ON ci.variant_id = pv.id 
+        SELECT ci.*, p.name, p.price, p.discount_percent, pv.size, pv.color
+        FROM cart_items ci
+        JOIN products p ON ci.product_id = p.id
+        LEFT JOIN product_variants pv ON ci.variant_id = pv.id
         WHERE ci.user_id = ?
     ");
     $stmt->execute([$userId]);
     $cartItems = $stmt->fetchAll();
-    
+
     if (empty($cartItems)) {
         throw new Exception('Cart is empty');
     }
-    
-    // Calculate subtotal
-    $subtotal = array_sum(array_map(fn($item) => $item['price'] * $item['qty'], $cartItems));
-    
-    // Get shipping cost
-    $shippingCost = 0;
-    if ($shippingMethodId > 0) {
-        $stmt = $pdo->prepare("SELECT cost FROM shipping_methods WHERE id = ? AND is_active = 1");
-        $stmt->execute([$shippingMethodId]);
-        $shippingCost = floatval($stmt->fetchColumn());
+
+    // Calculate subtotal with discount applied
+    $subtotal = 0;
+    foreach ($cartItems as &$item) {
+        $item_price = calculateDiscount($item['price'], $item['discount_percent'] ?? 0);
+        $item['final_price'] = $item_price;
+        $subtotal += $item_price * $item['qty'];
     }
-    
+    unset($item);
+
+    // Validate shipping cost
+    if ($shippingCost < 0) {
+        $shippingCost = 0;
+    }
+
     // Apply voucher discounts
     $finalShippingCost = $voucherFreeShipping ? 0 : $shippingCost;
     $total = $subtotal + $finalShippingCost - $voucherDiscount;
@@ -71,22 +87,22 @@ try {
     // Create order with expiry time (1 hour)
     $stmt = $pdo->prepare("
         INSERT INTO orders (
-            user_id, order_number, subtotal, shipping_cost, voucher_discount, 
-            voucher_free_shipping, voucher_codes, total_payable_amount, 
-            payment_method, payment_status, shipping_status, fulfillment_status,
+            user_id, order_number, recipient_name, phone, address, latitude, longitude,
+            subtotal, shipping_cost, discount, total, courier_code, courier_service,
+            voucher_codes, payment_method, payment_status, order_status,
             expired_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', 'pending', DATE_ADD(NOW(), INTERVAL 1 HOUR))
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', DATE_ADD(NOW(), INTERVAL 1 HOUR))
     ");
     $stmt->execute([
-        $userId, $orderNumber, $subtotal, $shippingCost, $voucherDiscount,
-        $voucherFreeShipping, $voucherCodes, $total,
-        $paymentMethod
+        $userId, $orderNumber, $recipientName, $phone, $address, $latitude, $longitude,
+        $subtotal, $finalShippingCost, $voucherDiscount, $total, $courierCode, $courierService,
+        $voucherCodes, $paymentMethod
     ]);
     $orderId = $pdo->lastInsertId();
     
-    // Create order items
+    // Create order items with final price (after discount)
     $stmt = $pdo->prepare("
-        INSERT INTO order_items (order_id, product_id, variant_id, quantity, price) 
+        INSERT INTO order_items (order_id, product_id, variant_id, quantity, price)
         VALUES (?, ?, ?, ?, ?)
     ");
     foreach ($cartItems as $item) {
@@ -95,7 +111,7 @@ try {
             $item['product_id'],
             $item['variant_id'],
             $item['qty'],
-            $item['price']
+            $item['final_price']
         ]);
     }
     

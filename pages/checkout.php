@@ -70,13 +70,27 @@ if ($has_stock_issues) {
     redirect('/pages/cart.php');
 }
 
-// Get payment methods
-$stmt = $pdo->query("SELECT * FROM payment_methods WHERE is_active = 1 ORDER BY display_order");
-$payment_methods = $stmt->fetchAll();
+try {
+    $stmt = $pdo->query("SELECT * FROM payment_methods WHERE is_active = 1 ORDER BY display_order");
+    $payment_methods = $stmt->fetchAll();
+} catch (Exception $e) {
+    $payment_methods = [];
+}
 
-// Get payment settings
-$stmt = $pdo->query("SELECT * FROM payment_settings WHERE id = 1");
-$payment_settings = $stmt->fetch();
+$payment_enabled = [];
+foreach ($payment_methods as $method) {
+    $payment_enabled[$method['type']] = true;
+}
+
+try {
+    $stmt = $pdo->query("SELECT * FROM payment_gateway_settings WHERE is_active = 1");
+    $gateway_settings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($gateway_settings as $gateway) {
+        $payment_enabled[$gateway['gateway_name']] = true;
+    }
+} catch (Exception $e) {
+    // Gateway settings not available
+}
 
 $page_title = 'Checkout - Selesaikan Pembayaran | Dorve House';
 $page_description = 'Checkout pesanan baju wanita Anda dengan aman. Pilih metode pembayaran: transfer bank, e-wallet, COD. Gratis ongkir min Rp500.000.';
@@ -1160,35 +1174,36 @@ include __DIR__ . '/../includes/header.php';
             <div class="form-section-box">
                 <h3 class="section-title">💳 Payment Method</h3>
 
-                <!-- Dorve Wallet -->
-                <div class="option-card <?= $user['wallet_balance'] > 0 ? '' : 'disabled' ?>" onclick="selectPaymentMethod('wallet', this)">
-                    <input type="radio" name="payment_method" value="wallet" id="payment-wallet" <?= $user['wallet_balance'] > 0 ? '' : 'disabled' ?>>
-                    <div class="option-card-content">
-                        <div class="option-card-name">💰 Dorve Wallet</div>
-                        <div class="option-card-desc">Balance: Rp <?= number_format($user['wallet_balance'], 0, ',', '.') ?></div>
-                    </div>
-                </div>
+                <?php if (!empty($payment_methods)): ?>
+                    <?php foreach ($payment_methods as $method): ?>
+                        <?php
+                        $disabled = false;
+                        $desc = htmlspecialchars($method['description'] ?? '');
 
-                <?php if ($payment_settings && $payment_settings['midtrans_enabled']): ?>
-                <!-- Midtrans -->
-                <div class="option-card" onclick="selectPaymentMethod('midtrans', this)">
-                    <input type="radio" name="payment_method" value="midtrans" id="payment-midtrans">
-                    <div class="option-card-content">
-                        <div class="option-card-name">💳 Credit/Debit Card & E-Wallet</div>
-                        <div class="option-card-desc">Pay with Midtrans (Bank Transfer, QRIS, Gopay, OVO, etc.)</div>
+                        if ($method['type'] === 'wallet') {
+                            $disabled = $user['wallet_balance'] <= 0;
+                            $desc = 'Balance: Rp ' . number_format($user['wallet_balance'], 0, ',', '.');
+                        }
+                        ?>
+                        <div class="option-card <?= $disabled ? 'disabled' : '' ?>"
+                             onclick="<?= $disabled ? '' : "selectPaymentMethod('{$method['type']}', this)" ?>">
+                            <input type="radio" name="payment_method"
+                                   value="<?= htmlspecialchars($method['type']) ?>"
+                                   id="payment-<?= htmlspecialchars($method['type']) ?>"
+                                   <?= $disabled ? 'disabled' : '' ?>>
+                            <div class="option-card-content">
+                                <div class="option-card-name">
+                                    <?= htmlspecialchars($method['name']) ?>
+                                </div>
+                                <div class="option-card-desc"><?= $desc ?></div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div style="padding: 24px; text-align: center; color: #666; background: #f9fafb; border-radius: 12px;">
+                        <p>⚠️ No payment methods available at the moment.</p>
+                        <p style="margin-top: 8px; font-size: 14px;">Please contact admin to enable payment methods.</p>
                     </div>
-                </div>
-                <?php endif; ?>
-
-                <?php if ($payment_settings && $payment_settings['bank_transfer_enabled']): ?>
-                <!-- Direct Bank Transfer -->
-                <div class="option-card" onclick="selectPaymentMethod('bank_transfer', this)">
-                    <input type="radio" name="payment_method" value="bank_transfer" id="payment-bank">
-                    <div class="option-card-content">
-                        <div class="option-card-name">🏦 Direct Bank Transfer</div>
-                        <div class="option-card-desc">Manual transfer to our bank account with unique code</div>
-                    </div>
-                </div>
                 <?php endif; ?>
             </div>
 

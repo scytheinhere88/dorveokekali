@@ -8,13 +8,20 @@ if (!isLoggedIn() || $_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $action = $_POST['action'] ?? 'create';
 
-// STEP 1: Create pending transaction with unique code
 if ($action === 'create' || !isset($_POST['action'])) {
     $amount_original = floatval($_POST['amount'] ?? 0);
     $bank_account_id = intval($_POST['bank_account_id'] ?? 0);
 
-    if ($amount_original < 10000) {
-        $_SESSION['error'] = 'Minimum top up amount is Rp 10,000';
+    try {
+        $stmt = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key = 'min_topup_amount'");
+        $min_topup = $stmt->fetchColumn();
+        $min_topup_amount = $min_topup ? floatval($min_topup) : 10000;
+    } catch (Exception $e) {
+        $min_topup_amount = 10000;
+    }
+
+    if ($amount_original < $min_topup_amount) {
+        $_SESSION['error'] = 'Minimum top up amount is Rp ' . number_format($min_topup_amount, 0, ',', '.');
         redirect('/member/wallet.php');
     }
 
@@ -26,8 +33,17 @@ if ($action === 'create' || !isset($_POST['action'])) {
     try {
         $pdo->beginTransaction();
 
-        // Generate unique code (1-999)
-        $unique_code = rand(100, 999);
+        try {
+            $stmt = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key IN ('unique_code_min', 'unique_code_max')");
+            $codes = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+            $unique_code_min = isset($codes['unique_code_min']) ? intval($codes['unique_code_min']) : 100;
+            $unique_code_max = isset($codes['unique_code_max']) ? intval($codes['unique_code_max']) : 999;
+        } catch (Exception $e) {
+            $unique_code_min = 100;
+            $unique_code_max = 999;
+        }
+
+        $unique_code = rand($unique_code_min, $unique_code_max);
         $amount_with_code = $amount_original + $unique_code;
 
         $user = getCurrentUser();
