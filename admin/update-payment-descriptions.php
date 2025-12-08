@@ -30,34 +30,69 @@ header('Content-Type: text/html; charset=utf-8');
 try {
     echo "Updating payment method descriptions...\n\n";
 
+    // Check if 'code' column exists
+    $stmt = $pdo->query("SHOW COLUMNS FROM payment_methods LIKE 'code'");
+    $has_code_column = $stmt->rowCount() > 0;
+
+    if (!$has_code_column) {
+        echo "<span class='info'>⚠️ 'code' column not found. Will only use 'type' column for matching.</span>\n\n";
+    }
+
     // Update Bank Transfer
-    $stmt = $pdo->prepare("
-        UPDATE payment_methods
-        SET description = 'Transfer ke rekening bank kami (BCA, Mandiri, BNI). Pilih bank setelah place order.'
-        WHERE type = 'bank_transfer' OR code = 'bank_transfer' OR code = 'BANK_TRANSFER'
-    ");
+    if ($has_code_column) {
+        $stmt = $pdo->prepare("
+            UPDATE payment_methods
+            SET description = 'Transfer ke rekening bank kami (BCA, Mandiri, BNI). Pilih bank setelah place order.'
+            WHERE type = 'bank_transfer' OR code = 'bank_transfer' OR code = 'BANK_TRANSFER' OR name LIKE '%bank%'
+        ");
+    } else {
+        $stmt = $pdo->prepare("
+            UPDATE payment_methods
+            SET description = 'Transfer ke rekening bank kami (BCA, Mandiri, BNI). Pilih bank setelah place order.'
+            WHERE type = 'bank_transfer' OR name LIKE '%bank%'
+        ");
+    }
     $stmt->execute();
-    echo "<span class='success'>✅ Bank Transfer description updated</span>\n";
+    $count = $stmt->rowCount();
+    echo "<span class='success'>✅ Bank Transfer description updated ($count rows)</span>\n";
     echo "   New: 'Transfer ke rekening bank kami (BCA, Mandiri, BNI). Pilih bank setelah place order.'\n\n";
 
     // Update Midtrans
-    $stmt = $pdo->prepare("
-        UPDATE payment_methods
-        SET description = 'Bayar dengan QRIS, E-Wallet, atau Kartu Kredit (akan muncul pilihan lengkap setelah place order)'
-        WHERE type = 'midtrans' OR code = 'midtrans' OR code = 'MIDTRANS'
-    ");
+    if ($has_code_column) {
+        $stmt = $pdo->prepare("
+            UPDATE payment_methods
+            SET description = 'Bayar dengan QRIS, E-Wallet, atau Kartu Kredit (akan muncul pilihan lengkap setelah place order)'
+            WHERE type = 'midtrans' OR code = 'midtrans' OR code = 'MIDTRANS' OR name LIKE '%midtrans%'
+        ");
+    } else {
+        $stmt = $pdo->prepare("
+            UPDATE payment_methods
+            SET description = 'Bayar dengan QRIS, E-Wallet, atau Kartu Kredit (akan muncul pilihan lengkap setelah place order)'
+            WHERE type = 'midtrans' OR name LIKE '%midtrans%'
+        ");
+    }
     $stmt->execute();
-    echo "<span class='success'>✅ Midtrans description updated</span>\n";
+    $count = $stmt->rowCount();
+    echo "<span class='success'>✅ Midtrans description updated ($count rows)</span>\n";
     echo "   New: 'Bayar dengan QRIS, E-Wallet, atau Kartu Kredit (akan muncul pilihan lengkap setelah place order)'\n\n";
 
     // Update Wallet
-    $stmt = $pdo->prepare("
-        UPDATE payment_methods
-        SET description = 'Bayar menggunakan saldo Dorve Wallet Anda'
-        WHERE type = 'wallet' OR code = 'wallet' OR code = 'WALLET'
-    ");
+    if ($has_code_column) {
+        $stmt = $pdo->prepare("
+            UPDATE payment_methods
+            SET description = 'Bayar menggunakan saldo Dorve Wallet Anda'
+            WHERE type = 'wallet' OR code = 'wallet' OR code = 'WALLET' OR name LIKE '%wallet%'
+        ");
+    } else {
+        $stmt = $pdo->prepare("
+            UPDATE payment_methods
+            SET description = 'Bayar menggunakan saldo Dorve Wallet Anda'
+            WHERE type = 'wallet' OR name LIKE '%wallet%'
+        ");
+    }
     $stmt->execute();
-    echo "<span class='success'>✅ Wallet description updated</span>\n";
+    $count = $stmt->rowCount();
+    echo "<span class='success'>✅ Wallet description updated ($count rows)</span>\n";
     echo "   New: 'Bayar menggunakan saldo Dorve Wallet Anda'\n\n";
 
     echo "\n<span class='success'>========================================</span>\n";

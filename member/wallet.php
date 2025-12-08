@@ -11,6 +11,38 @@ $user = getCurrentUser();
 $step = $_GET['step'] ?? 'list';
 $txn_id = $_GET['txn_id'] ?? null;
 
+// Check payment methods availability
+$payment_enabled = [];
+try {
+    $stmt = $pdo->query("SELECT * FROM payment_methods WHERE is_active = 1");
+    $payment_methods = $stmt->fetchAll();
+    foreach ($payment_methods as $method) {
+        $payment_enabled[$method['type']] = true;
+    }
+} catch (Exception $e) {
+    $payment_enabled = [];
+}
+
+// Get Midtrans settings if enabled
+if (isset($payment_enabled['midtrans']) && $payment_enabled['midtrans']) {
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM payment_gateway_settings WHERE gateway_name = 'midtrans' AND is_active = 1");
+        $stmt->execute();
+        $midtrans_settings = $stmt->fetch();
+
+        if ($midtrans_settings) {
+            define('MIDTRANS_CLIENT_KEY', $midtrans_settings['client_key']);
+            define('MIDTRANS_SNAP_URL', $midtrans_settings['is_production'] ?
+                'https://app.midtrans.com/snap/snap.js' :
+                'https://app.sandbox.midtrans.com/snap/snap.js'
+            );
+        }
+    } catch (Exception $e) {
+        // Midtrans not configured
+        $payment_enabled['midtrans'] = false;
+    }
+}
+
 // Get bank accounts from database
 try {
     $stmt = $pdo->query("SELECT * FROM bank_accounts WHERE is_active = 1 ORDER BY display_order ASC");
@@ -434,26 +466,48 @@ include __DIR__ . '/../includes/member-layout-horizontal.php';
                 </div>
 
                 <div class="payment-section">
-                    <h4>Select Destination Bank</h4>
-                    <div class="bank-grid">
-                        <?php foreach ($all_banks as $bank): ?>
-                        <div class="bank-card <?php echo $bank['is_active'] ? '' : 'disabled'; ?>"
-                             data-bank-id="<?php echo $bank['id']; ?>"
-                             data-active="<?php echo $bank['is_active']; ?>"
-                             onclick="selectBank(this)">
-                            <div class="bank-name"><?php echo htmlspecialchars($bank['bank_name']); ?></div>
-                            <div class="bank-number"><?php echo htmlspecialchars($bank['account_number']); ?></div>
-                            <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">
-                                a.n. <?php echo htmlspecialchars($bank['account_name']); ?>
+                    <h4>Select Payment Method</h4>
+
+                    <!-- Payment Method Selection -->
+                    <div class="bank-grid" style="margin-bottom: 24px;">
+                        <div class="bank-card" id="midtrans-method" onclick="selectPaymentMethod('midtrans', this)" style="cursor: pointer;">
+                            <div class="bank-name">💳 Midtrans Payment</div>
+                            <div style="font-size: 12px; opacity: 0.7; margin-top: 8px;">
+                                QRIS, GoPay, OVO, ShopeePay, Credit Card, dll
                             </div>
                         </div>
-                        <?php endforeach; ?>
+                        <div class="bank-card" id="bank-method" onclick="selectPaymentMethod('bank_transfer', this)" style="cursor: pointer;">
+                            <div class="bank-name">🏦 Bank Transfer</div>
+                            <div style="font-size: 12px; opacity: 0.7; margin-top: 8px;">
+                                Transfer manual ke rekening bank kami
+                            </div>
+                        </div>
                     </div>
-                    <input type="hidden" name="bank_account_id" id="selectedBankId" required>
+                    <input type="hidden" name="payment_method" id="selectedPaymentMethod" required>
+
+                    <!-- Bank Selection (shown only for bank_transfer) -->
+                    <div id="bank-selection-section" style="display: none;">
+                        <h4>Select Destination Bank</h4>
+                        <div class="bank-grid">
+                            <?php foreach ($all_banks as $bank): ?>
+                            <div class="bank-card <?php echo $bank['is_active'] ? '' : 'disabled'; ?>"
+                                 data-bank-id="<?php echo $bank['id']; ?>"
+                                 data-active="<?php echo $bank['is_active']; ?>"
+                                 onclick="selectBank(this)">
+                                <div class="bank-name"><?php echo htmlspecialchars($bank['bank_name']); ?></div>
+                                <div class="bank-number"><?php echo htmlspecialchars($bank['account_number']); ?></div>
+                                <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">
+                                    a.n. <?php echo htmlspecialchars($bank['account_name']); ?>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <input type="hidden" name="bank_account_id" id="selectedBankId">
+                    </div>
                 </div>
 
-                <button type="submit" class="btn" style="background: var(--charcoal); color: var(--white); width: 100%;">
-                    Continue to Payment
+                <button type="submit" class="btn" id="continueBtn" style="background: var(--charcoal); color: var(--white); width: 100%; opacity: 0.5; cursor: not-allowed;" disabled>
+                    Select Payment Method First
                 </button>
             </form>
         </div>
@@ -577,6 +631,15 @@ include __DIR__ . '/../includes/member-layout-horizontal.php';
 </div>
 
 <script>
+// Load Midtrans Snap if available
+<?php if (isset($payment_enabled['midtrans']) && $payment_enabled['midtrans']): ?>
+const midtransScriptUrl = '<?php echo MIDTRANS_SNAP_URL; ?>';
+const script = document.createElement('script');
+script.src = midtransScriptUrl;
+script.setAttribute('data-client-key', '<?php echo MIDTRANS_CLIENT_KEY; ?>');
+document.head.appendChild(script);
+<?php endif; ?>
+
 function toggleTopup() {
     const form = document.getElementById('topupForm');
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
@@ -588,6 +651,34 @@ function selectAmount(amount) {
     event.target.closest('.topup-option').classList.add('selected');
 }
 
+function selectPaymentMethod(method, element) {
+    // Update selection UI
+    document.getElementById('midtrans-method').classList.remove('selected');
+    document.getElementById('bank-method').classList.remove('selected');
+    element.classList.add('selected');
+
+    // Update hidden field
+    document.getElementById('selectedPaymentMethod').value = method;
+
+    // Show/hide bank selection
+    const bankSection = document.getElementById('bank-selection-section');
+    const continueBtn = document.getElementById('continueBtn');
+
+    if (method === 'bank_transfer') {
+        bankSection.style.display = 'block';
+        continueBtn.textContent = 'Select Bank to Continue';
+        continueBtn.disabled = true;
+        continueBtn.style.opacity = '0.5';
+        continueBtn.style.cursor = 'not-allowed';
+    } else if (method === 'midtrans') {
+        bankSection.style.display = 'none';
+        continueBtn.textContent = 'Continue with Midtrans';
+        continueBtn.disabled = false;
+        continueBtn.style.opacity = '1';
+        continueBtn.style.cursor = 'pointer';
+    }
+}
+
 function selectBank(element) {
     const isActive = element.getAttribute('data-active') === '1';
 
@@ -596,9 +687,17 @@ function selectBank(element) {
         return;
     }
 
-    document.querySelectorAll('.bank-card').forEach(card => card.classList.remove('selected'));
+    // Update selection UI within bank section only
+    document.querySelectorAll('#bank-selection-section .bank-card').forEach(card => card.classList.remove('selected'));
     element.classList.add('selected');
     document.getElementById('selectedBankId').value = element.getAttribute('data-bank-id');
+
+    // Enable continue button
+    const continueBtn = document.getElementById('continueBtn');
+    continueBtn.textContent = 'Continue to Payment';
+    continueBtn.disabled = false;
+    continueBtn.style.opacity = '1';
+    continueBtn.style.cursor = 'pointer';
 }
 
 function closeModal() {
@@ -618,6 +717,78 @@ window.onclick = function(event) {
         modal.style.display = 'none';
     }
 }
+
+// Handle form submission
+document.getElementById('topupFormElement')?.addEventListener('submit', async function(e) {
+    const paymentMethod = document.getElementById('selectedPaymentMethod').value;
+    const amount = document.getElementById('customAmount').value;
+
+    if (!amount || amount < 10000) {
+        alert('Minimum topup amount is Rp 10,000');
+        e.preventDefault();
+        return;
+    }
+
+    // For Midtrans, use API and show Snap popup
+    if (paymentMethod === 'midtrans') {
+        e.preventDefault();
+
+        const continueBtn = document.getElementById('continueBtn');
+        continueBtn.disabled = true;
+        continueBtn.textContent = 'Processing...';
+
+        try {
+            const formData = new FormData();
+            formData.append('amount', amount);
+            formData.append('payment_method', 'midtrans');
+
+            const response = await fetch('/api/topup/create.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.snap_token) {
+                // Show Midtrans Snap popup
+                if (typeof snap !== 'undefined') {
+                    snap.pay(data.snap_token, {
+                        onSuccess: function(result) {
+                            window.location.href = '/member/wallet.php?success=1';
+                        },
+                        onPending: function(result) {
+                            window.location.href = '/member/wallet.php?pending=1';
+                        },
+                        onError: function(result) {
+                            alert('Payment failed. Please try again.');
+                            continueBtn.disabled = false;
+                            continueBtn.textContent = 'Continue with Midtrans';
+                        },
+                        onClose: function() {
+                            continueBtn.disabled = false;
+                            continueBtn.textContent = 'Continue with Midtrans';
+                        }
+                    });
+                } else {
+                    alert('Midtrans is not available. Please try again later.');
+                    continueBtn.disabled = false;
+                    continueBtn.textContent = 'Continue with Midtrans';
+                }
+            } else {
+                alert('Error: ' + (data.error || 'Failed to create topup'));
+                continueBtn.disabled = false;
+                continueBtn.textContent = 'Continue with Midtrans';
+            }
+        } catch (error) {
+            console.error('Topup error:', error);
+            alert('An error occurred. Please try again.');
+            continueBtn.disabled = false;
+            continueBtn.textContent = 'Continue with Midtrans';
+        }
+    }
+    // For bank_transfer, submit normally (will handle by process-topup.php)
+    // form will submit normally, no preventDefault
+});
 </script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
