@@ -20,7 +20,7 @@ if (file_exists($phpmailer_path)) {
 define('SMTP_HOST', 'smtp.gmail.com');
 define('SMTP_PORT', 587);
 define('SMTP_USERNAME', 'dorveofficial@gmail.com');
-define('SMTP_PASSWORD', 'nqztkewcyrxowrsg'); // Gmail App Password (without spaces)
+define('SMTP_PASSWORD', 'whpkdxhcilxstaao'); // Gmail App Password (without spaces)
 define('FROM_EMAIL', 'noreply@dorve.id');
 define('FROM_NAME', 'Dorve.id - Pusat Fashion Indonesia');
 define('SITE_URL', 'https://dorve.id/');
