@@ -1129,10 +1129,11 @@ include __DIR__ . '/../includes/header.php';
                     <select id="saved-address-select" class="form-select">
                         <option value="">Select a saved address</option>
                         <?php foreach ($savedAddresses as $addr): ?>
-                            <option value="<?= $addr['id'] ?>" 
+                            <option value="<?= $addr['id'] ?>"
                                     data-name="<?= htmlspecialchars($addr['recipient_name']) ?>"
                                     data-phone="<?= htmlspecialchars($addr['phone']) ?>"
                                     data-address="<?= htmlspecialchars($addr['address']) ?>"
+                                    data-postal="<?= htmlspecialchars($addr['postal_code'] ?? '') ?>"
                                     data-lat="<?= $addr['latitude'] ?>"
                                     data-lng="<?= $addr['longitude'] ?>"
                                     <?= $addr['is_default'] ? 'selected' : '' ?>>
@@ -1399,32 +1400,49 @@ document.getElementById('saved-address-select')?.addEventListener('change', func
     document.getElementById('longitude').value = option.dataset.lng || '';
 
     if (option.dataset.lat && option.dataset.lng) {
-        fetchShippingRates(option.dataset.lat, option.dataset.lng);
+        fetchShippingRates(option.dataset.lat, option.dataset.lng, option.dataset.postal);
     }
 });
 
 // ===== SHIPPING CALCULATION =====
-function fetchShippingRates(lat, lng) {
+function fetchShippingRates(lat, lng, postalCode) {
     const container = document.getElementById('shipping-rates-container');
     container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Loading shipping options...</p></div>';
 
     const cartItems = <?= json_encode($cart_items) ?>;
 
+    const payload = {
+        latitude: lat,
+        longitude: lng,
+        items: cartItems
+    };
+
+    if (postalCode) {
+        payload.postal_code = postalCode;
+    }
+
+    console.log('Fetching shipping rates with:', payload);
+
     fetch('/api/shipping/calculate-rates.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ latitude: lat, longitude: lng, items: cartItems })
+        body: JSON.stringify(payload)
     })
     .then(r => r.json())
     .then(data => {
+        console.log('Shipping rates response:', data);
         if (data.success && data.rates && data.rates.length > 0) {
             renderShippingRates(data.rates);
         } else {
-            container.innerHTML = '<p style="color: #EF4444; text-align: center; padding: 40px;">⚠️ No shipping options available for this address</p>';
+            let errorMsg = '⚠️ No shipping options available for this address';
+            if (data.error) {
+                errorMsg += '<br><small style="color: #9CA3AF; margin-top: 8px; display: block;">' + data.error + '</small>';
+            }
+            container.innerHTML = '<p style="color: #EF4444; text-align: center; padding: 40px;">' + errorMsg + '</p>';
         }
     })
     .catch(e => {
-        container.innerHTML = '<p style="color: #EF4444; text-align: center; padding: 40px;">❌ Error loading shipping options</p>';
+        container.innerHTML = '<p style="color: #EF4444; text-align: center; padding: 40px;">❌ Error loading shipping options<br><small style="color: #9CA3AF; margin-top: 8px; display: block;">' + e.message + '</small></p>';
         console.error('Shipping error:', e);
     });
 }
