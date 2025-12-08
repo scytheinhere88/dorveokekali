@@ -70,6 +70,20 @@ function fixSettingsTable($pdo, $table_name, $purpose) {
             $existing_columns[] = $row['Field'];
         }
 
+        // Check for old column name 'key_name' and rename to 'setting_key'
+        if (in_array('key_name', $existing_columns) && !in_array('setting_key', $existing_columns)) {
+            echo "<span class='warning'>⚠️ Found old column name: 'key_name'</span>\n";
+            echo "<span class='info'>Renaming to: 'setting_key'</span>\n";
+            try {
+                $pdo->exec("ALTER TABLE $table_name CHANGE COLUMN `key_name` `setting_key` VARCHAR(100) NOT NULL");
+                echo "<span class='success'>✅ Renamed: key_name → setting_key</span>\n";
+                $existing_columns = array_diff($existing_columns, ['key_name']);
+                $existing_columns[] = 'setting_key';
+            } catch (PDOException $e) {
+                echo "<span class='warning'>⚠️ Could not rename: " . $e->getMessage() . "</span>\n";
+            }
+        }
+
         // Add missing columns
         $columns_to_add = [
             'setting_key' => 'VARCHAR(100) NOT NULL',
@@ -93,7 +107,7 @@ function fixSettingsTable($pdo, $table_name, $purpose) {
         }
 
         if ($added == 0) {
-            echo "<span class='info'>ℹ️ All columns exist</span>\n";
+            echo "<span class='info'>ℹ️ All required columns exist</span>\n";
         }
 
         // Add unique index
