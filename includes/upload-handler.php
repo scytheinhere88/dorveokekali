@@ -34,7 +34,7 @@ function handleImageUpload($file, $directory = 'products', $maxSize = 134217728)
 
     $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
     $filename = uniqid() . '_' . time() . '.' . strtolower($ext);
-    $uploadDir = __DIR__ . '/../public/uploads/' . $directory . '/';
+    $uploadDir = __DIR__ . '/../uploads/' . $directory . '/';
 
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
@@ -45,8 +45,8 @@ function handleImageUpload($file, $directory = 'products', $maxSize = 134217728)
     if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
         return [
             'success' => true,
-            'path' => '/public/uploads/' . $directory . '/' . $filename,
-            'file_path' => '/public/uploads/' . $directory . '/' . $filename,
+            'path' => 'products/' . $filename,
+            'file_path' => 'products/' . $filename,
             'filename' => $filename
         ];
     }

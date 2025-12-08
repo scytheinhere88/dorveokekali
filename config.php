@@ -15,7 +15,7 @@ define('SITE_EMAIL', 'info@dorve.id');
 
 // Upload Configuration
 define('UPLOAD_PATH', __DIR__ . '/uploads/');
-define('UPLOAD_URL', SITE_URL . '/uploads/');
+define('UPLOAD_URL', rtrim(SITE_URL, '/') . '/uploads/');
 
 // Session Configuration
 if (session_status() === PHP_SESSION_NONE) {

@@ -27,9 +27,11 @@ try {
 
 // Get featured products (from "Featured Product" checkbox in admin)
 try {
-    $stmt = $pdo->prepare("SELECT p.*, c.name as category_name
+    $stmt = $pdo->prepare("SELECT p.*, c.name as category_name,
+                          COALESCE(pi.image_path, p.image) as image
                           FROM products p
                           LEFT JOIN categories c ON p.category_id = c.id
+                          LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                           WHERE (p.is_featured = 1 OR p.is_best_seller = 1) AND p.is_active = 1
                           ORDER BY p.created_at DESC
                           LIMIT 8");
@@ -40,9 +42,11 @@ try {
 }
 
 // Get new arrivals
-$stmt = $pdo->prepare("SELECT p.*, c.name as category_name
+$stmt = $pdo->prepare("SELECT p.*, c.name as category_name,
+                      COALESCE(pi.image_path, p.image) as image
                       FROM products p
                       LEFT JOIN categories c ON p.category_id = c.id
+                      LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                       WHERE p.is_new = 1 AND p.is_active = 1
                       ORDER BY p.created_at DESC
                       LIMIT 8");
@@ -50,9 +54,11 @@ $stmt->execute();
 $new_arrivals = $stmt->fetchAll();
 
 // Get all products for SEO
-$stmt = $pdo->query("SELECT p.*, c.name as category_name
+$stmt = $pdo->query("SELECT p.*, c.name as category_name,
+                     COALESCE(pi.image_path, p.image) as image
                      FROM products p
                      LEFT JOIN categories c ON p.category_id = c.id
+                     LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                      WHERE p.is_active = 1
                      ORDER BY p.created_at DESC
                      LIMIT 12");

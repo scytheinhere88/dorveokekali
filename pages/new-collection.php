@@ -11,23 +11,29 @@ try {
 }
 
 // Fetch new collection by gender
-$stmt_women = $pdo->query("SELECT p.*, c.name as category_name
+$stmt_women = $pdo->query("SELECT p.*, c.name as category_name,
+                     COALESCE(pi.image_path, p.image) as image
                      FROM products p
                      LEFT JOIN categories c ON p.category_id = c.id
+                     LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                      WHERE p.is_new = 1 AND p.is_active = 1 AND p.gender = 'women'
                      ORDER BY p.created_at DESC LIMIT 8");
 $products_women = $stmt_women->fetchAll();
 
-$stmt_men = $pdo->query("SELECT p.*, c.name as category_name
+$stmt_men = $pdo->query("SELECT p.*, c.name as category_name,
+                     COALESCE(pi.image_path, p.image) as image
                      FROM products p
                      LEFT JOIN categories c ON p.category_id = c.id
+                     LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                      WHERE p.is_new = 1 AND p.is_active = 1 AND p.gender = 'men'
                      ORDER BY p.created_at DESC LIMIT 8");
 $products_men = $stmt_men->fetchAll();
 
-$stmt_unisex = $pdo->query("SELECT p.*, c.name as category_name
+$stmt_unisex = $pdo->query("SELECT p.*, c.name as category_name,
+                     COALESCE(pi.image_path, p.image) as image
                      FROM products p
                      LEFT JOIN categories c ON p.category_id = c.id
+                     LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                      WHERE p.is_new = 1 AND p.is_active = 1 AND p.gender = 'unisex'
                      ORDER BY p.created_at DESC LIMIT 8");
 $products_unisex = $stmt_unisex->fetchAll();

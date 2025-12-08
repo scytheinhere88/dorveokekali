@@ -14,10 +14,12 @@ $stmt->execute([$userId]);
 $savedAddresses = $stmt->fetchAll();
 
 // Get cart items with discount
-$stmt = $pdo->prepare("SELECT ci.*, p.name, p.price, p.discount_percent, pv.size, pv.color
+$stmt = $pdo->prepare("SELECT ci.*, p.name, p.price, p.discount_percent, pv.size, pv.color,
+                       COALESCE(pi.image_path, p.image) as image_path
                        FROM cart_items ci
                        JOIN products p ON ci.product_id = p.id
                        LEFT JOIN product_variants pv ON ci.variant_id = pv.id
+                       LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
                        WHERE ci.user_id = ?");
 $stmt->execute([$userId]);
 $cart_items = $stmt->fetchAll();
