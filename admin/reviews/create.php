@@ -73,28 +73,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get products
 $stmt = $pdo->query("SELECT id, name, image FROM products ORDER BY name");
 $products = $stmt->fetchAll();
+
+$page_title = 'Create Fake Review - Admin';
+include __DIR__ . '/../includes/admin-header.php';
 ?>
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Buat Review - Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #F3F4F6; }
-        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
-        
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-        }
-        
+
+<style>
         h1 { font-size: 28px; margin-bottom: 32px; }
         
         .form-group {
@@ -184,11 +170,18 @@ $products = $stmt->fetchAll();
             border-radius: 6px;
         }
     </style>
-</head>
-<body>
-    <div class="container">
-        <div class="card">
-            <h1>✍️ Buat Review Baru (Admin)</h1>
+
+<main class="admin-main">
+    <div class="page-header">
+        <div>
+            <h1>✍️ Create Fake Review</h1>
+            <p>Create a promotional review as a guest user</p>
+        </div>
+        <a href="/admin/reviews/index.php" class="btn btn-secondary">← Back to Reviews</a>
+    </div>
+
+    <div class="card">
+        <h2 style="margin-bottom: 24px;">Review Details</h2>
             
             <?php if ($error): ?>
                 <div class="alert alert-error">❌ <?= htmlspecialchars($error) ?></div>
@@ -240,10 +233,10 @@ $products = $stmt->fetchAll();
                     <a href="/admin/reviews/" class="btn btn-secondary">Batal</a>
                 </div>
             </form>
-        </div>
     </div>
-    
-    <script>
+</main>
+
+<script>
     let selectedRating = 0;
     const stars = document.querySelectorAll('.star');
     const ratingInput = document.getElementById('ratingInput');
@@ -290,6 +283,6 @@ $products = $stmt->fetchAll();
             preview.innerHTML = '';
         }
     }
-    </script>
-</body>
-</html>
+</script>
+
+<?php include __DIR__ . '/../includes/admin-footer.php'; ?>

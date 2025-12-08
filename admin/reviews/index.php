@@ -101,9 +101,8 @@ $reviews = $stmt->fetchAll();
 $stmt = $pdo->query("SELECT id, name FROM products ORDER BY name");
 $products = $stmt->fetchAll();
 
-// Get stats
 $stmt = $pdo->query("
-    SELECT 
+    SELECT
         COUNT(*) as total,
         SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) as published,
         SUM(CASE WHEN status = 'hidden' THEN 1 ELSE 0 END) as hidden,
@@ -112,53 +111,15 @@ $stmt = $pdo->query("
     FROM product_reviews
 ");
 $stats = $stmt->fetch();
+
+$page_title = 'Reviews Management - Admin';
+include __DIR__ . '/../includes/admin-header.php';
 ?>
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Review Management - Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #F3F4F6; }
-        
-        .header {
-            background: white;
-            padding: 20px 40px;
-            border-bottom: 1px solid #E5E7EB;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .header h1 { font-size: 24px; }
-        
-        .btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            border: none;
-            cursor: pointer;
-            display: inline-block;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
-            color: white;
-        }
-        
-        .btn-danger { background: #EF4444; color: white; }
-        .btn-success { background: #10B981; color: white; }
-        .btn-warning { background: #F59E0B; color: white; }
-        .btn-secondary { background: #6B7280; color: white; }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 40px;
+
+<style>
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
         }
         
         .stats-grid {
@@ -304,18 +265,16 @@ $stats = $stmt->fetch();
             color: #065F46;
             border: 1px solid #6EE7B7;
         }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>⭐ Review Management</h1>
+</style>
+
+<main class="admin-main">
+    <div class="page-header">
         <div>
-            <a href="/admin/reviews/create.php" class="btn btn-primary">+ Buat Review Baru</a>
-            <a href="/admin/" class="btn btn-secondary">← Kembali</a>
+            <h1>⭐ Reviews Management</h1>
+            <p>Manage customer reviews and create promotional reviews</p>
         </div>
+        <a href="/admin/reviews/create.php" class="btn btn-primary">+ Create New Review</a>
     </div>
-    
-    <div class="container">
         <?php if (isset($_SESSION['success'])): ?>
             <div class="alert alert-success">
                 ✅ <?= htmlspecialchars($_SESSION['success']) ?>
@@ -438,6 +397,6 @@ $stats = $stmt->fetch();
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>
-    </div>
-</body>
-</html>
+</main>
+
+<?php include __DIR__ . '/../includes/admin-footer.php'; ?>

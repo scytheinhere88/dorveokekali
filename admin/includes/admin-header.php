@@ -48,6 +48,9 @@
                 <a href="/admin/vouchers/index.php" class="nav-item <?php echo strpos($_SERVER['PHP_SELF'], '/vouchers/') !== false ? 'active' : ''; ?>">
                     🎫 Voucher
                 </a>
+                <a href="/admin/reviews/index.php" class="nav-item <?php echo strpos($_SERVER['PHP_SELF'], '/reviews/') !== false ? 'active' : ''; ?>">
+                    ⭐ Reviews
+                </a>
                 <a href="/admin/shipping/index.php" class="nav-item <?php echo strpos($_SERVER['PHP_SELF'], '/shipping/') !== false ? 'active' : ''; ?>">
                     🚚 Pengiriman
                 </a>
