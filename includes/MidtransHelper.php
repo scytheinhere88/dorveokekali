@@ -11,20 +11,28 @@ class MidtransHelper {
     private $apiUrl;
     
     public function __construct($pdo) {
-        // Load settings from database
-        $stmt = $pdo->query("SELECT setting_key, setting_value FROM payment_settings WHERE setting_key LIKE 'midtrans_%'");
-        $settings = [];
-        while ($row = $stmt->fetch()) {
-            $settings[$row['setting_key']] = $row['setting_value'];
+        try {
+            $stmt = $pdo->prepare("SELECT * FROM payment_gateway_settings WHERE gateway_name = 'midtrans' AND is_active = 1");
+            $stmt->execute();
+            $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($settings) {
+                $this->serverKey = $settings['server_key'] ?? '';
+                $this->clientKey = $settings['client_key'] ?? '';
+                $this->isProduction = ($settings['is_production'] ?? 0) == 1;
+            } else {
+                $this->serverKey = '';
+                $this->clientKey = '';
+                $this->isProduction = false;
+            }
+        } catch (Exception $e) {
+            $this->serverKey = '';
+            $this->clientKey = '';
+            $this->isProduction = false;
         }
-        
-        $this->serverKey = $settings['midtrans_server_key'] ?? '';
-        $this->clientKey = $settings['midtrans_client_key'] ?? '';
-        $this->isProduction = ($settings['midtrans_is_production'] ?? '0') == '1';
-        
-        // Set API URL based on environment
-        $this->apiUrl = $this->isProduction 
-            ? 'https://api.midtrans.com' 
+
+        $this->apiUrl = $this->isProduction
+            ? 'https://api.midtrans.com'
             : 'https://api.sandbox.midtrans.com';
     }
     

@@ -11,26 +11,42 @@ class BiteshipConfig {
         if (self::$config !== null) {
             return self::$config;
         }
-        
+
         global $pdo;
-        
-        // Check which column name is used
+        $settings = [];
+
         try {
-            $checkStmt = $pdo->query("DESCRIBE settings");
-            $columns = array_column($checkStmt->fetchAll(), 'Field');
-            $valueColumn = in_array('setting_value', $columns) ? 'setting_value' : 'value';
+            $stmt = $pdo->query("SELECT * FROM payment_gateway_settings WHERE gateway_name = 'biteship'");
+            $biteship = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($biteship) {
+                $settings['biteship_api_key'] = $biteship['api_key'] ?? '';
+                $settings['biteship_environment'] = $biteship['is_production'] ? 'production' : 'sandbox';
+            }
         } catch (Exception $e) {
-            $valueColumn = 'setting_value'; // default
+            // Gateway settings not available
         }
-        
-        $stmt = $pdo->query("SELECT setting_key, $valueColumn as setting_value FROM settings WHERE setting_key LIKE 'biteship_%' OR setting_key LIKE 'store_%'");
-        $settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-        
+
+        try {
+            $stmt = $pdo->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key LIKE 'store_%' OR setting_key LIKE 'biteship_%'");
+            $systemSettings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+            $settings = array_merge($settings, $systemSettings);
+        } catch (Exception $e) {
+            // System settings not available
+        }
+
+        try {
+            $stmt = $pdo->query("SELECT setting_key, setting_value FROM site_settings WHERE setting_key LIKE 'store_%'");
+            $siteSettings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+            $settings = array_merge($settings, $siteSettings);
+        } catch (Exception $e) {
+            // Site settings not available
+        }
+
         self::$config = [
             'api_key' => $settings['biteship_api_key'] ?? '',
             'environment' => $settings['biteship_environment'] ?? 'sandbox',
             'webhook_secret' => $settings['biteship_webhook_secret'] ?? '',
-            'base_url' => ($settings['biteship_environment'] ?? 'sandbox') === 'production' 
+            'base_url' => ($settings['biteship_environment'] ?? 'sandbox') === 'production'
                 ? 'https://api.biteship.com/v1'
                 : 'https://api-sandbox.biteship.com/v1',
             'store' => [
@@ -43,7 +59,7 @@ class BiteshipConfig {
                 'country' => $settings['store_country'] ?? 'ID'
             ]
         ];
-        
+
         return self::$config;
     }
     
