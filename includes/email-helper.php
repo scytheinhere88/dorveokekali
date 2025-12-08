@@ -19,8 +19,8 @@ if (file_exists($phpmailer_path)) {
 // Email configuration - CONFIGURED!
 define('SMTP_HOST', 'smtp.gmail.com');
 define('SMTP_PORT', 587);
-define('SMTP_USERNAME', 'officiallangkalytica@gmail.com');
-define('SMTP_PASSWORD', 'nqztkewcyrxowrsg'); // Gmail App Password
+define('SMTP_USERNAME', 'dorveofficial@gmail.com');
+define('SMTP_PASSWORD', 'nqztkewcyrxowrsg'); // Gmail App Password (without spaces)
 define('FROM_EMAIL', 'noreply@dorve.id');
 define('FROM_NAME', 'Dorve.id - Pusat Fashion Indonesia');
 define('SITE_URL', 'https://dorve.id/');
