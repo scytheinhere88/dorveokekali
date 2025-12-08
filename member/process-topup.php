@@ -54,8 +54,8 @@ if ($action === 'create' || !isset($_POST['action'])) {
 
         $stmt = $pdo->prepare("
             INSERT INTO wallet_transactions
-            (user_id, type, amount, amount_original, unique_code, balance_before, balance_after, payment_method, payment_status, reference_id, bank_account_id, description)
-            VALUES (?, 'topup', ?, ?, ?, ?, ?, 'bank_transfer', 'pending', ?, ?, ?)
+            (user_id, type, amount, amount_original, unique_code, balance_before, balance_after, status, payment_method, payment_status, reference_id, bank_account_id, description)
+            VALUES (?, 'topup', ?, ?, ?, ?, ?, 'pending', 'bank_transfer', 'pending', ?, ?, ?)
         ");
 
         $stmt->execute([
