@@ -17,16 +17,58 @@ if ($qty < 1 || $qty > 10) {
 }
 
 try {
+    // Check stock availability first
+    $available_stock = 0;
+    if ($variant_id) {
+        // Check variant stock
+        $stmt = $pdo->prepare("SELECT stock FROM product_variants WHERE id = ? AND is_active = 1");
+        $stmt->execute([$variant_id]);
+        $variant = $stmt->fetch();
+        if (!$variant) {
+            echo json_encode(['success' => false, 'message' => 'Varian produk tidak tersedia']);
+            exit;
+        }
+        $available_stock = $variant['stock'];
+    } else {
+        // Check total stock from all variants or product stock
+        $stmt = $pdo->prepare("SELECT COALESCE(SUM(pv.stock), 0) as total_stock
+                               FROM product_variants pv
+                               WHERE pv.product_id = ? AND pv.is_active = 1");
+        $stmt->execute([$product_id]);
+        $result = $stmt->fetch();
+        $available_stock = $result['total_stock'] ?? 0;
+    }
+
     if (isLoggedIn()) {
         $stmt = $pdo->prepare("SELECT * FROM cart_items WHERE user_id = ? AND product_id = ? AND variant_id <=> ?");
         $stmt->execute([$_SESSION['user_id'], $product_id, $variant_id]);
         $existing = $stmt->fetch();
 
         if ($existing) {
-            $new_qty = min($existing['qty'] + $qty, 10);
+            $new_qty = $existing['qty'] + $qty;
+
+            // Check if new quantity exceeds available stock
+            if ($new_qty > $available_stock) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Stock tidak mencukupi! Stock tersedia: ' . $available_stock . ' pcs'
+                ]);
+                exit;
+            }
+
+            $new_qty = min($new_qty, 10);
             $stmt = $pdo->prepare("UPDATE cart_items SET qty = ? WHERE id = ?");
             $stmt->execute([$new_qty, $existing['id']]);
         } else {
+            // Check if requested quantity exceeds available stock
+            if ($qty > $available_stock) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Stock tidak mencukupi! Stock tersedia: ' . $available_stock . ' pcs'
+                ]);
+                exit;
+            }
+
             $stmt = $pdo->prepare("INSERT INTO cart_items (user_id, product_id, variant_id, qty) VALUES (?, ?, ?, ?)");
             $stmt->execute([$_SESSION['user_id'], $product_id, $variant_id, $qty]);
         }
@@ -38,10 +80,30 @@ try {
         $existing = $stmt->fetch();
 
         if ($existing) {
-            $new_qty = min($existing['qty'] + $qty, 10);
+            $new_qty = $existing['qty'] + $qty;
+
+            // Check if new quantity exceeds available stock
+            if ($new_qty > $available_stock) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Stock tidak mencukupi! Stock tersedia: ' . $available_stock . ' pcs'
+                ]);
+                exit;
+            }
+
+            $new_qty = min($new_qty, 10);
             $stmt = $pdo->prepare("UPDATE cart_items SET qty = ? WHERE id = ?");
             $stmt->execute([$new_qty, $existing['id']]);
         } else {
+            // Check if requested quantity exceeds available stock
+            if ($qty > $available_stock) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Stock tidak mencukupi! Stock tersedia: ' . $available_stock . ' pcs'
+                ]);
+                exit;
+            }
+
             $stmt = $pdo->prepare("INSERT INTO cart_items (session_id, product_id, variant_id, qty) VALUES (?, ?, ?, ?)");
             $stmt->execute([$session_id, $product_id, $variant_id, $qty]);
         }

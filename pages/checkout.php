@@ -28,11 +28,44 @@ if (empty($cart_items)) {
     redirect('/pages/cart.php');
 }
 
-// Calculate subtotal with discount
+// Add stock validation and calculate subtotal with discount
 $subtotal = 0;
-foreach ($cart_items as $item) {
+$has_stock_issues = false;
+$stock_error_message = '';
+
+foreach ($cart_items as &$item) {
+    // Get available stock
+    if ($item['variant_id']) {
+        $stmt = $pdo->prepare("SELECT stock FROM product_variants WHERE id = ? AND is_active = 1");
+        $stmt->execute([$item['variant_id']]);
+        $variant = $stmt->fetch();
+        $item['available_stock'] = $variant['stock'] ?? 0;
+    } else {
+        $stmt = $pdo->prepare("SELECT COALESCE(SUM(stock), 0) as total_stock
+                               FROM product_variants
+                               WHERE product_id = ? AND is_active = 1");
+        $stmt->execute([$item['product_id']]);
+        $result = $stmt->fetch();
+        $item['available_stock'] = $result['total_stock'] ?? 0;
+    }
+
+    // Check stock
+    if ($item['available_stock'] <= 0) {
+        $has_stock_issues = true;
+        $stock_error_message = 'Beberapa produk di keranjang Anda sudah habis stocknya.';
+    } elseif ($item['qty'] > $item['available_stock']) {
+        $has_stock_issues = true;
+        $stock_error_message = 'Kuantitas beberapa produk melebihi stock yang tersedia.';
+    }
+
     $item_price = calculateDiscount($item['price'], $item['discount_percent']);
     $subtotal += $item_price * $item['qty'];
+}
+
+// Redirect back to cart if stock issues
+if ($has_stock_issues) {
+    $_SESSION['error_message'] = $stock_error_message . ' Silakan periksa keranjang Anda.';
+    redirect('/pages/cart.php');
 }
 
 // Get payment methods

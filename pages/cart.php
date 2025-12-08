@@ -8,7 +8,7 @@ try {
 
     if (isLoggedIn()) {
         $stmt = $pdo->prepare("SELECT ci.*, p.name, p.slug, p.price, p.discount_percent,
-                               pi.image_path, pv.color, pv.size
+                               pi.image_path, pv.color, pv.size, pv.stock as variant_stock
                                FROM cart_items ci
                                JOIN products p ON ci.product_id = p.id
                                LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
@@ -18,7 +18,7 @@ try {
     } else {
         $session_id = session_id();
         $stmt = $pdo->prepare("SELECT ci.*, p.name, p.slug, p.price, p.discount_percent,
-                               pi.image_path, pv.color, pv.size
+                               pi.image_path, pv.color, pv.size, pv.stock as variant_stock
                                FROM cart_items ci
                                JOIN products p ON ci.product_id = p.id
                                LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
@@ -28,6 +28,26 @@ try {
     }
 
     $cart_items = $stmt->fetchAll();
+
+    // Add available stock info for each item
+    $has_stock_issues = false;
+    foreach ($cart_items as &$item) {
+        if ($item['variant_id']) {
+            $item['available_stock'] = $item['variant_stock'] ?? 0;
+        } else {
+            $stmt = $pdo->prepare("SELECT COALESCE(SUM(stock), 0) as total_stock
+                                   FROM product_variants
+                                   WHERE product_id = ? AND is_active = 1");
+            $stmt->execute([$item['product_id']]);
+            $result = $stmt->fetch();
+            $item['available_stock'] = $result['total_stock'] ?? 0;
+        }
+
+        // Check for stock issues
+        if ($item['qty'] > $item['available_stock'] || $item['available_stock'] <= 0) {
+            $has_stock_issues = true;
+        }
+    }
 
     $subtotal = 0;
     foreach ($cart_items as $item) {
@@ -397,6 +417,28 @@ include __DIR__ . '/../includes/header.php';
                                     <?php if ($item['size']): ?>Size: <?php echo htmlspecialchars($item['size']); ?><?php endif; ?>
                                 </div>
                             <?php endif; ?>
+
+                            <?php
+                            $available_stock = $item['available_stock'];
+                            $is_out_of_stock = $available_stock <= 0;
+                            $is_low_stock = $available_stock > 0 && $available_stock < 3;
+                            $insufficient_stock = $item['qty'] > $available_stock;
+                            ?>
+
+                            <?php if ($is_out_of_stock): ?>
+                                <div style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color: #991b1b; padding: 8px 12px; border-radius: 8px; margin: 8px 0; font-size: 13px; font-weight: 600; border: 2px solid #ef4444; display: inline-block;">
+                                    ❌ Stock Habis!
+                                </div>
+                            <?php elseif ($insufficient_stock): ?>
+                                <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); color: #92400e; padding: 8px 12px; border-radius: 8px; margin: 8px 0; font-size: 13px; font-weight: 600; border: 2px solid #f59e0b; display: inline-block;">
+                                    ⚠️ Stock tidak mencukupi! Tersisa <?php echo $available_stock; ?> pcs
+                                </div>
+                            <?php elseif ($is_low_stock): ?>
+                                <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); color: #92400e; padding: 8px 12px; border-radius: 8px; margin: 8px 0; font-size: 13px; font-weight: 500; border: 1px solid #f59e0b; display: inline-block;">
+                                    ⏰ Tersisa <?php echo $available_stock; ?> stock
+                                </div>
+                            <?php endif; ?>
+
                             <div style="margin-bottom: 8px; font-size: 16px; font-weight: 600;">
                                 <?php echo formatPrice($item_price); ?>
                             </div>
@@ -444,7 +486,16 @@ include __DIR__ . '/../includes/header.php';
                     <span><?php echo formatPrice($total); ?></span>
                 </div>
 
-                <a href="/pages/checkout.php" class="checkout-btn">Proceed to Checkout</a>
+                <?php if ($has_stock_issues): ?>
+                    <div style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color: #991b1b; padding: 16px 20px; border-radius: 12px; margin: 20px 0; font-size: 14px; font-weight: 600; border: 2px solid #ef4444; text-align: center;">
+                        ⚠️ Tidak dapat checkout! Harap periksa stock produk di keranjang Anda.
+                    </div>
+                    <button disabled class="checkout-btn" style="opacity: 0.5; cursor: not-allowed; background: #9ca3af;">
+                        Checkout (Stock Tidak Tersedia)
+                    </button>
+                <?php else: ?>
+                    <a href="/pages/checkout.php" class="checkout-btn">Proceed to Checkout</a>
+                <?php endif; ?>
 
                 <div style="text-align: center; margin-top: 24px;">
                     <a href="/pages/all-products.php" style="color: var(--grey); font-size: 13px; text-decoration: none;">← Continue Shopping</a>
