@@ -25,39 +25,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->execute([$gateway]);
                     $existing = $stmt->fetch();
 
-                    if ($existing) {
-                        $stmt = $pdo->prepare("
-                            UPDATE payment_gateway_settings
-                            SET api_key = ?, api_secret = ?, merchant_id = ?, client_id = ?, client_secret = ?,
-                                is_production = ?, is_active = ?
-                            WHERE gateway_name = ?
-                        ");
-                        $stmt->execute([
-                            $_POST['api_key'] ?? '',
-                            $_POST['api_secret'] ?? '',
-                            $_POST['merchant_id'] ?? '',
-                            $_POST['client_id'] ?? '',
-                            $_POST['client_secret'] ?? '',
-                            isset($_POST['is_production']) ? 1 : 0,
-                            isset($_POST['is_active']) ? 1 : 0,
-                            $gateway
-                        ]);
-                    } else {
-                        $stmt = $pdo->prepare("
-                            INSERT INTO payment_gateway_settings
-                            (gateway_name, api_key, api_secret, merchant_id, client_id, client_secret, is_production, is_active)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                        ");
-                        $stmt->execute([
-                            $gateway,
-                            $_POST['api_key'] ?? '',
-                            $_POST['api_secret'] ?? '',
-                            $_POST['merchant_id'] ?? '',
-                            $_POST['client_id'] ?? '',
-                            $_POST['client_secret'] ?? '',
-                            isset($_POST['is_production']) ? 1 : 0,
-                            isset($_POST['is_active']) ? 1 : 0
-                        ]);
+                    // For Midtrans, use server_key and client_key
+                    if ($gateway === 'midtrans') {
+                        if ($existing) {
+                            $stmt = $pdo->prepare("
+                                UPDATE payment_gateway_settings
+                                SET server_key = ?, client_key = ?, merchant_id = ?,
+                                    is_production = ?, is_active = ?
+                                WHERE gateway_name = ?
+                            ");
+                            $stmt->execute([
+                                $_POST['server_key'] ?? '',
+                                $_POST['client_key'] ?? '',
+                                $_POST['merchant_id'] ?? '',
+                                isset($_POST['is_production']) ? 1 : 0,
+                                isset($_POST['is_active']) ? 1 : 0,
+                                $gateway
+                            ]);
+                        } else {
+                            $stmt = $pdo->prepare("
+                                INSERT INTO payment_gateway_settings
+                                (gateway_name, server_key, client_key, merchant_id, is_production, is_active)
+                                VALUES (?, ?, ?, ?, ?, ?)
+                            ");
+                            $stmt->execute([
+                                $gateway,
+                                $_POST['server_key'] ?? '',
+                                $_POST['client_key'] ?? '',
+                                $_POST['merchant_id'] ?? '',
+                                isset($_POST['is_production']) ? 1 : 0,
+                                isset($_POST['is_active']) ? 1 : 0
+                            ]);
+                        }
+                    }
+                    // For other gateways, use generic fields
+                    else {
+                        if ($existing) {
+                            $stmt = $pdo->prepare("
+                                UPDATE payment_gateway_settings
+                                SET api_key = ?, api_secret = ?, merchant_id = ?, client_id = ?, client_secret = ?,
+                                    is_production = ?, is_active = ?
+                                WHERE gateway_name = ?
+                            ");
+                            $stmt->execute([
+                                $_POST['api_key'] ?? '',
+                                $_POST['api_secret'] ?? '',
+                                $_POST['merchant_id'] ?? '',
+                                $_POST['client_id'] ?? '',
+                                $_POST['client_secret'] ?? '',
+                                isset($_POST['is_production']) ? 1 : 0,
+                                isset($_POST['is_active']) ? 1 : 0,
+                                $gateway
+                            ]);
+                        } else {
+                            $stmt = $pdo->prepare("
+                                INSERT INTO payment_gateway_settings
+                                (gateway_name, api_key, api_secret, merchant_id, client_id, client_secret, is_production, is_active)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                            ");
+                            $stmt->execute([
+                                $gateway,
+                                $_POST['api_key'] ?? '',
+                                $_POST['api_secret'] ?? '',
+                                $_POST['merchant_id'] ?? '',
+                                $_POST['client_id'] ?? '',
+                                $_POST['client_secret'] ?? '',
+                                isset($_POST['is_production']) ? 1 : 0,
+                                isset($_POST['is_active']) ? 1 : 0
+                            ]);
+                        }
                     }
 
                     $_SESSION['success'] = ucfirst($gateway) . ' settings saved successfully!';
@@ -250,12 +286,12 @@ include __DIR__ . '/../includes/admin-header.php';
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Server Key *</label>
-                        <input type="text" name="api_key" value="<?php echo htmlspecialchars($gateways['midtrans']['api_key'] ?? ''); ?>" placeholder="SB-Mid-server-..." required>
+                        <input type="text" name="server_key" value="<?php echo htmlspecialchars($gateways['midtrans']['server_key'] ?? ''); ?>" placeholder="SB-Mid-server-..." required>
                     </div>
 
                     <div class="form-group">
                         <label>Client Key *</label>
-                        <input type="text" name="api_secret" value="<?php echo htmlspecialchars($gateways['midtrans']['api_secret'] ?? ''); ?>" placeholder="SB-Mid-client-..." required>
+                        <input type="text" name="client_key" value="<?php echo htmlspecialchars($gateways['midtrans']['client_key'] ?? ''); ?>" placeholder="SB-Mid-client-..." required>
                     </div>
 
                     <div class="form-group">
