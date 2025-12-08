@@ -1,13 +1,20 @@
-# Increase upload size to 128MB
+# PHP Configuration
 php_value upload_max_filesize 128M
 php_value post_max_size 128M
 php_value max_execution_time 300
 php_value max_input_time 300
 
-# COMPLETELY DISABLE MOD_REWRITE
-# All pages must be accessed with full paths like /admin/login.php
-# This ensures NOTHING interferes with direct file access
+# Enable directory access
+Options +FollowSymLinks
+DirectoryIndex index.php index.html
 
-# RewriteEngine Off
+# Allow all access (no restrictions)
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
 
-# NO REWRITE RULES AT ALL - Direct file access only!
+# For Apache 2.2
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Allow from all
+</IfModule>
