@@ -6,27 +6,71 @@ if (isLoggedIn() && isAdmin()) {
 }
 
 $error = '';
+$debug_info = [];
+
+// Enable debug mode (set to false in production)
+$debug_mode = true;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
 
-    if ($email && $password) {
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND role = 'admin'");
-        $stmt->execute([$email]);
-        $user = $stmt->fetch();
+    $debug_info[] = "📧 Email received: " . htmlspecialchars($email);
+    $debug_info[] = "🔐 Password received: " . (strlen($password) > 0 ? "Yes (" . strlen($password) . " chars)" : "No");
 
-        if ($user && password_verify($password, $user['password'])) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_name'] = $user['name'];
-            $_SESSION['role'] = 'admin';
-            $_SESSION['is_admin'] = 1;
-            redirect('/admin/index.php');
-        } else {
-            $error = 'Invalid email or password';
+    if ($email && $password) {
+        try {
+            // Check if user exists
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            $any_user = $stmt->fetch();
+
+            if ($any_user) {
+                $debug_info[] = "✅ User found with email: " . htmlspecialchars($email);
+                $debug_info[] = "👤 User role: " . htmlspecialchars($any_user['role']);
+                $debug_info[] = "🔑 Password hash exists: " . (strlen($any_user['password']) > 0 ? "Yes" : "No");
+
+                // Check password
+                $password_match = password_verify($password, $any_user['password']);
+                $debug_info[] = "🔐 Password verification: " . ($password_match ? "✅ MATCH" : "❌ NO MATCH");
+
+                // Check role
+                if ($any_user['role'] !== 'admin') {
+                    $debug_info[] = "❌ User is not an admin (role: " . htmlspecialchars($any_user['role']) . ")";
+                    $error = 'This user is not an administrator';
+                } elseif (!$password_match) {
+                    $debug_info[] = "❌ Password does not match";
+                    $error = 'Invalid email or password';
+                }
+            } else {
+                $debug_info[] = "❌ No user found with email: " . htmlspecialchars($email);
+                $error = 'Invalid email or password';
+            }
+
+            // Now check with admin role filter
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND role = 'admin'");
+            $stmt->execute([$email]);
+            $user = $stmt->fetch();
+
+            if ($user && password_verify($password, $user['password'])) {
+                $debug_info[] = "✅ Admin login successful!";
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['name'];
+                $_SESSION['role'] = 'admin';
+                $_SESSION['is_admin'] = 1;
+                redirect('/admin/index.php');
+            } else {
+                if (!$error) {
+                    $error = 'Invalid email or password';
+                }
+            }
+        } catch (Exception $e) {
+            $debug_info[] = "❌ Database error: " . $e->getMessage();
+            $error = 'Database error occurred';
         }
     } else {
         $error = 'Please fill all fields';
+        $debug_info[] = "❌ Missing email or password";
     }
 }
 ?>
@@ -175,6 +219,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <?php if ($error): ?>
             <div class="error"><?php echo htmlspecialchars($error); ?></div>
+        <?php endif; ?>
+
+        <?php if ($debug_mode && count($debug_info) === 0): ?>
+            <div class="demo-info">
+                <strong>🔧 Debug Tools Available:</strong>
+                <div style="margin-top: 8px;">
+                    <a href="debug-database.php" style="color: #0066CC; text-decoration: none;">📊 Check Database & Users</a>
+                </div>
+                <div style="margin-top: 4px;">
+                    <a href="create-admin.php" style="color: #0066CC; text-decoration: none;">➕ Create Admin User</a>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($debug_mode && !empty($debug_info)): ?>
+            <div class="demo-info">
+                <strong>🔍 Debug Information:</strong>
+                <?php foreach ($debug_info as $info): ?>
+                    <div style="margin: 4px 0; font-size: 12px; font-family: 'Courier New', monospace;">
+                        <?php echo $info; ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         <?php endif; ?>
 
         <form method="POST">
